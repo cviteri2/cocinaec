@@ -48,6 +48,7 @@ def _register_blueprints(app):
     from .routes.api import bp as api_bp
     from .routes.auth import bp as auth_bp
     from .routes.cook import bp as cook_bp
+    from .routes.deploy import bp as deploy_bp
     from .routes.inventory import bp as inventory_bp
     from .routes.main import bp as main_bp
     from .routes.meal_plan import bp as meal_plan_bp
@@ -56,7 +57,7 @@ def _register_blueprints(app):
     from .routes.shopping import bp as shopping_bp
 
     for bp in (main_bp, auth_bp, cook_bp, recipes_bp, inventory_bp, shopping_bp,
-               meal_plan_bp, profile_bp, admin_bp, api_bp):
+               meal_plan_bp, profile_bp, admin_bp, api_bp, deploy_bp):
         app.register_blueprint(bp)
 
 

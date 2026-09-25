@@ -45,6 +45,11 @@ class Config:
     RECIPES_PER_PAGE = 12
     APP_TIMEZONE = os.environ.get("APP_TIMEZONE", "America/Guayaquil")
 
+    # Despliegue automático por webhook de GitHub (desactivado sin secreto)
+    GITHUB_WEBHOOK_SECRET = os.environ.get("GITHUB_WEBHOOK_SECRET")
+    DEPLOY_BRANCH = os.environ.get("DEPLOY_BRANCH", "main")
+    DEPLOY_WSGI_FILE = os.environ.get("DEPLOY_WSGI_FILE")
+
 
 class DevelopmentConfig(Config):
     DEBUG = True

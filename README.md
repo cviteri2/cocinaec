@@ -187,6 +187,33 @@ Los pasos sirven para una cuenta gratuita o de pago. Reemplaza `TU_USUARIO` por 
 
 Para actualizar después: `git pull`, `pip install -r requirements.txt` si cambió y luego **Reload**. Si algo falla, revisa el *error log* en la pestaña Web.
 
+## Despliegue automático (webhook de GitHub)
+
+Con cada `push` a `main`, GitHub llama a `https://cocinaec.pythonanywhere.com/deploy/github`. La app:
+
+1. verifica la firma HMAC (`X-Hub-Signature-256`) con `GITHUB_WEBHOOK_SECRET`;
+2. ignora los eventos que no son `push` y las ramas distintas de `DEPLOY_BRANCH`;
+3. lanza `deploy.sh` en segundo plano: `git fetch` + `merge --ff-only`, `pip install -r requirements.txt` y `touch` del archivo WSGI, lo que hace que PythonAnywhere recargue la app.
+
+El log queda en `instance/deploy.log`. Sin `GITHUB_WEBHOOK_SECRET`, el endpoint responde 404.
+
+Variables en `.env` del servidor:
+```
+GITHUB_WEBHOOK_SECRET=<secreto largo>
+DEPLOY_BRANCH=main
+DEPLOY_WSGI_FILE=/var/www/cocinaec_pythonanywhere_com_wsgi.py
+```
+
+En GitHub: *Settings → Webhooks → Add webhook*
+- Payload URL: `https://cocinaec.pythonanywhere.com/deploy/github`
+- Content type: `application/json`
+- Secret: el mismo `GITHUB_WEBHOOK_SECRET`
+- Evento: *Just the push event*
+
+Límites:
+- Los cambios de esquema de base de datos no se migran solos. `db.create_all()` crea tablas nuevas, pero no modifica las existentes.
+- Si editas archivos directamente en el servidor, `merge --ff-only` puede fallar. El error queda en el log.
+
 ## Git básico
 
 ```bash
