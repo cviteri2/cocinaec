@@ -1,0 +1,10 @@
+{% set ep = request.endpoint %}
+<nav class="admin-nav" aria-label="Administración">
+  <a href="{{ url_for('admin.dashboard') }}" class="{{ 'active' if ep == 'admin.dashboard' }}">📊 Dashboard</a>
+  <a href="{{ url_for('admin.recipes') }}" class="{{ 'active' if 'recipe' in ep }}">📖 Recetas</a>
+  <a href="{{ url_for('admin.ingredients') }}" class="{{ 'active' if 'ingredient' in ep }}">🥕 Ingredientes</a>
+  <a href="{{ url_for('admin.categories') }}" class="{{ 'active' if 'categor' in ep }}">🏷️ Categorías</a>
+  <a href="{{ url_for('admin.prices') }}" class="{{ 'active' if ep == 'admin.prices' }}">💰 Precios</a>
+  <a href="{{ url_for('admin.users') }}" class="{{ 'active' if 'user' in ep }}">👤 Usuarios</a>
+  <a href="{{ url_for('admin.messages') }}" class="{{ 'active' if ep == 'admin.messages' }}">✉️ Mensajes</a>
+</nav>

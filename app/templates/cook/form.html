@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+{% block title %}¿Qué cocino?{% endblock %}
+{% block container_class %}container--narrow{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>¿Qué cocinamos hoy?</h1>
+  <p>Dime qué tienes y te digo qué puedes cocinar.</p>
+</div>
+
+{% if error %}{{ ui.alert(error, "error") }}{% endif %}
+
+<form method="get" action="{{ url_for('cook.results') }}" class="cook-form">
+  <fieldset class="card cook-step">
+    <legend><span class="step-num">1</span> ¿Qué tienes en casa?</legend>
+    {% if has_inventory %}<p class="hint">Ya marcamos lo que tienes en tu inventario. Cambia lo que quieras.</p>{% endif %}
+    {% set selected = d.selected %}
+    {% include "cook/_ingredient_picker.html" %}
+  </fieldset>
+
+  <div class="cook-options">
+    <fieldset class="card cook-step">
+      <legend><span class="step-num">2</span> ¿Para cuántas personas?</legend>
+      <div class="pills">
+        {% for n in people_options %}
+        <label class="pill"><input type="radio" name="people" value="{{ n }}" {{ "checked" if n == d.people or (n == 6 and d.people > 6) }}><span>{{ "6+" if n == 6 else n }}</span></label>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    <fieldset class="card cook-step">
+      <legend><span class="step-num">3</span> ¿Qué comida?</legend>
+      {{ ui.choice_pills("meal", MEAL_TYPES.items(), d.meal) }}
+    </fieldset>
+
+    <fieldset class="card cook-step">
+      <legend><span class="step-num">4</span> ¿Cuánto tiempo tienes?</legend>
+      {{ ui.choice_pills("time", time_options, d.time) }}
+    </fieldset>
+
+    <fieldset class="card cook-step">
+      <legend><span class="step-num">5</span> ¿Cuánto quieres gastar?</legend>
+      {{ ui.choice_pills("budget", budget_options, d.budget | int) }}
+      <p class="hint mb-0 mt-1">En lo que te falte comprar. Costo estimado de referencia.</p>
+    </fieldset>
+  </div>
+
+  <details class="card cook-step more">
+    <summary>Preferencias alimentarias (opcional)</summary>
+    <input type="hidden" name="rset" value="1">
+    <div class="pills">
+      {% for key, label in restrictions.items() %}
+      <label class="pill"><input type="checkbox" name="r" value="{{ key }}" {{ "checked" if key in d.restrictions }}><span>{{ label }}</span></label>
+      {% endfor %}
+    </div>
+    <p class="hint mb-0 mt-1">Son filtros de preferencia, no consejo médico.</p>
+  </details>
+
+  <div class="cook-submit">
+    {{ ui.button("¿Qué cocinamos?", variant="primary", size="lg", icon="🍳") }}
+  </div>
+</form>
+
+<p class="center mt-3"><a href="{{ url_for('cook.pantry') }}">¿Solo quieres usar lo que tienes? Prueba “Cocina con lo que tengo” →</a></p>
+{% endblock %}

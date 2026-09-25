@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Política de privacidad{% endblock %}
+{% block content %}
+<article class="prose">
+  <h1>Política de privacidad</h1>
+  <p class="muted">Versión 2026-09. Documento base para la primera versión de la aplicación; debe ser revisado por un asesor legal antes del lanzamiento público.</p>
+
+  <p>En ¿Qué cocino hoy? cuidamos tus datos personales siguiendo el principio de <strong>solicitar solo lo necesario</strong>, en línea con la Ley Orgánica de Protección de Datos Personales del Ecuador (LOPDP).</p>
+
+  <h2>Qué datos recopilamos</h2>
+  <ul>
+    <li><strong>Cuenta:</strong> nombre, apellido, email, ciudad y contraseña (guardada cifrada con hash; nunca en texto plano).</li>
+    <li><strong>Preferencias:</strong> número de personas, tiempo y presupuesto habitual, tipos de comida que te gustan, restricciones alimentarias básicas e ingredientes que prefieres evitar.</li>
+    <li><strong>Uso de la app:</strong> tu inventario, lista de compras, plan semanal, favoritos e historial de recetas preparadas.</li>
+    <li><strong>Mi familia (opcional):</strong> nombre, relación y preferencias alimentarias de las personas que agregues.</li>
+    <li><strong>Métricas agregadas:</strong> búsquedas y recetas consultadas, para mejorar las recomendaciones.</li>
+  </ul>
+
+  <h2>Qué datos NO recopilamos</h2>
+  <ul>
+    <li>Ubicación exacta ni GPS (solo la ciudad que eliges).</li>
+    <li>Contactos, cámara ni micrófono.</li>
+    <li>Información médica. Las restricciones alimentarias son preferencias, no diagnósticos.</li>
+    <li>Tu dirección IP no se guarda en nuestras métricas.</li>
+  </ul>
+
+  <h2>Para qué los usamos</h2>
+  <p>Únicamente para recomendarte recetas, armar tu lista de compras y tu plan semanal. No vendemos ni compartimos tus datos con terceros con fines publicitarios.</p>
+
+  <h2>Tus derechos</h2>
+  <p>Desde tu <a href="{{ url_for('profile.profile') }}">perfil</a> puedes:</p>
+  <ul>
+    <li>Acceder y rectificar tus datos.</li>
+    <li>Descargar una copia de tus datos (portabilidad).</li>
+    <li>Eliminar tu inventario, lista de compras, favoritos o historial.</li>
+    <li>Eliminar tu cuenta y todos tus datos personales.</li>
+  </ul>
+  <p>Para cualquier otra solicitud, escríbenos desde <a href="{{ url_for('main.contact') }}">Contacto</a>.</p>
+
+  <h2>Seguridad</h2>
+  <p>Aplicamos contraseñas con hash, sesiones seguras, protección CSRF y control de acceso para que solo tú veas tu información.</p>
+
+  <h2>Cookies</h2>
+  <p>Usamos únicamente cookies necesarias para mantener tu sesión. No usamos cookies de publicidad.</p>
+</article>
+{% endblock %}

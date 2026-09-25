@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+{% block title %}Bienvenido{% endblock %}
+{% block content %}
+<div class="onboarding">
+  <div class="page-head">
+    <h1>Cuéntanos un poco de ti</h1>
+    <p>Cuatro preguntas rápidas para darte mejores ideas. Puedes cambiarlas cuando quieras.</p>
+  </div>
+  <form method="post" data-onboarding>
+    {{ ui.csrf() }}
+    <div class="progress" aria-hidden="true"><span class="on"></span><span></span><span></span><span></span></div>
+    {% set onboarding = True %}
+    {% include "profile/_preferences_fields.html" %}
+    <div class="ob-nav">
+      <button type="button" class="btn btn--ghost hidden" data-prev>← Atrás</button>
+      <span></span>
+      <button type="button" class="btn btn--primary hidden" data-next>Siguiente →</button>
+      <button type="submit" class="btn btn--primary" data-finish>¡Listo! 🍳</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

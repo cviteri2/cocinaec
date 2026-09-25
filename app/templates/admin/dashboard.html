@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Administración{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Administración</h1><p>La métrica que importa: ¿cuántas veces ayudamos a alguien a decidir qué cocinar?</p></div>
+{% include "admin/_nav.html" %}
+<div class="grid grid--4">
+  <div class="card stat stat--main"><span>Decisiones resueltas</span><strong>{{ stats.decisions }}</strong></div>
+  <div class="card stat"><span>Recetas preparadas</span><strong>{{ stats.cooked }}</strong></div>
+  <div class="card stat"><span>Recetas consultadas</span><strong>{{ stats.views }}</strong></div>
+  <div class="card stat"><span>Usuarios</span><strong>{{ stats.users }}</strong></div>
+  <div class="card stat"><span>Recetas</span><strong>{{ stats.recipes }}</strong></div>
+  <div class="card stat"><span>Ingredientes</span><strong>{{ stats.ingredients }}</strong></div>
+  <div class="card stat"><span>Planes semanales</span><strong>{{ stats.plans }}</strong></div>
+  <div class="card stat"><span>Favoritas guardadas</span><strong>{{ stats.favorites }}</strong></div>
+</div>
+{% if stats.messages %}<p class="mt-2"><a href="{{ url_for('admin.messages') }}">✉️ {{ stats.messages }} mensaje(s) sin leer</a></p>{% endif %}
+<div class="grid grid--2 section">
+  {% for title, rows in [("Recetas más consultadas", top_viewed), ("Recetas más preparadas", top_cooked), ("Recetas más guardadas", top_favorites)] %}
+  <div class="card"><h3>{{ title }}</h3>
+    {% if rows %}<ul class="mini-list">{% for recipe, n in rows %}<li><span>{{ recipe.emoji }} {{ recipe.name }}</span><strong>{{ n }}</strong></li>{% endfor %}</ul>
+    {% else %}<p class="muted mb-0">Aún no hay datos.</p>{% endif %}
+  </div>
+  {% endfor %}
+  <div class="card"><h3>Ingredientes más buscados</h3>
+    {% if top_ingredients %}<ul class="mini-list">{% for ing, n in top_ingredients %}<li><span>{{ ing.emoji }} {{ ing.name }}</span><strong>{{ n }}</strong></li>{% endfor %}</ul>
+    {% else %}<p class="muted mb-0">Aún no hay datos.</p>{% endif %}
+  </div>
+</div>
+{% endblock %}

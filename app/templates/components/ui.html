@@ -1,0 +1,183 @@
+{# Componentes reutilizables. Importar con:
+   {% import "components/ui.html" as ui with context %} #}
+
+{% macro logo_icon() -%}
+<svg class="logo__icon" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+  <circle cx="16" cy="16" r="15" fill="#15803D"/>
+  <circle cx="16" cy="17" r="7.5" fill="none" stroke="#FFF7ED" stroke-width="2"/>
+  <path d="M7.5 8v5.5M9.5 8v5.5M7.5 13.5h2M8.5 13.5V24" stroke="#FFF7ED" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M24 8c-1.8 1.2-2.2 3.4-2 6h2V24" stroke="#22C55E" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+{%- endmacro %}
+
+{% macro csrf() -%}
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+{%- endmacro %}
+
+{% macro alert(message, category="info") -%}
+{% set icons = {"success": "✅", "error": "⚠️", "info": "💡", "warning": "⚠️"} %}
+<div class="alert alert--{{ category }}" role="{{ 'alert' if category == 'error' else 'status' }}">
+  <span class="alert__icon" aria-hidden="true">{{ icons.get(category, "💡") }}</span>
+  <span>{{ message }}</span>
+  <button type="button" class="alert__close" data-dismiss aria-label="Cerrar">×</button>
+</div>
+{%- endmacro %}
+
+{% macro button(text, href=None, variant="primary", icon=None, type="submit", size=None, block=False, attrs="") -%}
+{% set cls = "btn btn--" ~ variant ~ (" btn--" ~ size if size else "") ~ (" btn--block" if block else "") %}
+{% if href %}
+<a class="{{ cls }}" href="{{ href }}" {{ attrs }}>{% if icon %}<span aria-hidden="true">{{ icon }}</span> {% endif %}{{ text }}</a>
+{% else %}
+<button class="{{ cls }}" type="{{ type }}" {{ attrs }}>{% if icon %}<span aria-hidden="true">{{ icon }}</span> {% endif %}{{ text }}</button>
+{% endif %}
+{%- endmacro %}
+
+{% macro post_button(action, text, variant="ghost", size="sm", confirm=None, icon=None, fields={}) -%}
+<form method="post" action="{{ action }}" class="inline-form" {% if confirm %}data-confirm="{{ confirm }}"{% endif %}>
+  {{ csrf() }}
+  {% for k, v in fields.items() %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
+  {{ button(text, variant=variant, size=size, icon=icon) }}
+</form>
+{%- endmacro %}
+
+{% macro empty_state(emoji, title, text, action_text=None, action_href=None) -%}
+<div class="empty">
+  <div class="empty__emoji" aria-hidden="true">{{ emoji }}</div>
+  <h3>{{ title }}</h3>
+  {% if text %}<p class="muted">{{ text }}</p>{% endif %}
+  {% if action_text %}{{ button(action_text, href=action_href, variant="primary") }}{% endif %}
+</div>
+{%- endmacro %}
+
+{% macro ingredient_chip(ingredient, name="i", checked=False) -%}
+<label class="chip">
+  <input type="checkbox" name="{{ name }}" value="{{ ingredient.id }}" {{ "checked" if checked }}>
+  <span>{% if ingredient.emoji %}<span aria-hidden="true">{{ ingredient.emoji }}</span> {% endif %}{{ ingredient.name }}</span>
+</label>
+{%- endmacro %}
+
+{% macro choice_pills(name, options, selected, type="radio") -%}
+<div class="pills" role="group">
+  {% for value, label in options %}
+  <label class="pill">
+    <input type="{{ type }}" name="{{ name }}" value="{{ value }}"
+      {{ "checked" if (selected is iterable and selected is not string and value in selected) or value == selected }}>
+    <span>{{ label }}</span>
+  </label>
+  {% endfor %}
+</div>
+{%- endmacro %}
+
+{% macro form_field(name, label, value="", type="text", error=None, required=False, placeholder="", autocomplete=None, hint=None, attrs="") -%}
+<div class="field {{ 'field--error' if error }}">
+  <label for="f-{{ name }}">{{ label }}{% if required %} <span class="req" aria-hidden="true">*</span>{% endif %}</label>
+  <input id="f-{{ name }}" name="{{ name }}" type="{{ type }}" value="{{ value or '' }}"
+    {% if required %}required{% endif %} {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+    {% if autocomplete %}autocomplete="{{ autocomplete }}"{% endif %}
+    {% if error %}aria-invalid="true" aria-describedby="e-{{ name }}"{% endif %} {{ attrs }}>
+  {% if hint %}<small class="hint">{{ hint }}</small>{% endif %}
+  {% if error %}<small class="field__error" id="e-{{ name }}">{{ error }}</small>{% endif %}
+</div>
+{%- endmacro %}
+
+{% macro favorite_button(recipe, is_favorite, next=None) -%}
+{% if current_user.is_authenticated %}
+<form method="post" action="{{ url_for('recipes.toggle_favorite', slug=recipe.slug) }}" class="inline-form" data-favorite>
+  {{ csrf() }}
+  <input type="hidden" name="next" value="{{ next or request.full_path }}">
+  <button type="submit" class="btn btn--ghost btn--sm fav {{ 'fav--on' if is_favorite }}" aria-pressed="{{ 'true' if is_favorite else 'false' }}">
+    <span aria-hidden="true">{{ "❤️" if is_favorite else "🤍" }}</span> <span data-label>{{ "Guardada" if is_favorite else "Guardar" }}</span>
+  </button>
+</form>
+{% else %}
+<a class="btn btn--ghost btn--sm" href="{{ url_for('auth.login', next=request.full_path) }}"><span aria-hidden="true">🤍</span> Guardar</a>
+{% endif %}
+{%- endmacro %}
+
+{% macro recipe_card(recipe, match=None, favorite_ids=(), people=None, compact=False) -%}
+{% set people = people or (match.people if match else recipe.servings) %}
+<article class="card recipe-card {{ 'recipe-card--compact' if compact }}">
+  <a class="recipe-card__media" href="{{ url_for('recipes.detail', slug=recipe.slug, people=people) }}" aria-hidden="true" tabindex="-1">
+    <span>{{ recipe.emoji }}</span>
+  </a>
+  <div class="recipe-card__body">
+    <h3 class="recipe-card__title"><a href="{{ url_for('recipes.detail', slug=recipe.slug, people=people) }}">{{ recipe.name }}</a></h3>
+    <ul class="meta">
+      <li>⏱ {{ recipe.total_minutes | minutes }}</li>
+      <li>👨‍👩‍👧‍👦 {{ people }} {{ "persona" if people == 1 else "personas" }}</li>
+      {% if match %}
+        <li title="Costo estimado de referencia de lo que falta comprar">💰 {{ match.missing_cost | money }} adicionales</li>
+      {% else %}
+        <li title="Costo estimado de referencia">💰 {{ (recipe.estimated_cost * people / recipe.servings) | money }}</li>
+      {% endif %}
+      <li>⭐ {{ recipe.difficulty }}</li>
+    </ul>
+    {% if match %}
+      <div class="coverage" aria-label="Tienes {{ match.coverage_pct }}% de los ingredientes">
+        <div class="coverage__bar"><span class="w-{{ (match.coverage_pct // 10) * 10 }}"></span></div>
+        <p class="coverage__text">Tienes {{ match.have_count }} de {{ match.required_count }} ingredientes
+          <strong>({{ match.coverage_pct }}%)</strong></p>
+      </div>
+      {% if match.missing %}
+        <p class="missing">Te falta{{ "n" if match.missing|length > 1 }}:
+          {% for ri in match.missing %}<span class="tag tag--warn">{{ ri.ingredient.name }}</span>{% endfor %}</p>
+      {% else %}
+        <p class="missing ok">✅ Tienes todo lo necesario</p>
+      {% endif %}
+      {% if not match.fits_time %}<p class="note">⏳ Toma un poco más del tiempo que tienes.</p>{% endif %}
+      {% if not match.fits_budget %}<p class="note">💸 Se pasa un poco de tu presupuesto.</p>{% endif %}
+    {% elif not compact %}
+      <p class="muted recipe-card__desc">{{ recipe.description | truncate(90) }}</p>
+    {% endif %}
+    <div class="recipe-card__actions">
+      {{ button("Ver receta", href=url_for('recipes.detail', slug=recipe.slug, people=people), variant="primary", size="sm") }}
+      {% if not compact %}{{ favorite_button(recipe, recipe.id in favorite_ids) }}{% endif %}
+    </div>
+  </div>
+</article>
+{%- endmacro %}
+
+{% macro shopping_item(item) -%}
+<li class="shop-item {{ 'shop-item--done' if item.checked }}" data-item="{{ item.id }}">
+  <form method="post" action="{{ url_for('shopping.toggle', item_id=item.id) }}" class="inline-form" data-toggle-item>
+    {{ csrf() }}
+    <button type="submit" class="check" role="checkbox" aria-checked="{{ 'true' if item.checked else 'false' }}"
+      aria-label="{{ 'Desmarcar' if item.checked else 'Marcar como comprado' }}: {{ item.name }}">
+      <span aria-hidden="true">{{ "✓" if item.checked }}</span>
+    </button>
+  </form>
+  <div class="shop-item__text">
+    <span class="shop-item__name">{{ item.name }}</span>
+    {% if item.quantity %}<span class="muted small">{{ item.quantity | qty(item.unit) }}</span>{% endif %}
+    {% if item.source_recipe %}<span class="muted small">· para {{ item.source_recipe.name }}</span>{% endif %}
+  </div>
+  <form method="post" action="{{ url_for('shopping.delete', item_id=item.id) }}" class="inline-form" data-delete-item>
+    {{ csrf() }}
+    <button type="submit" class="icon-btn" aria-label="Eliminar {{ item.name }}">🗑️</button>
+  </form>
+</li>
+{%- endmacro %}
+
+{% macro pagination(page, endpoint, args={}) -%}
+{% if page.pages > 1 %}
+<nav class="pagination" aria-label="Paginación">
+  {% if page.has_prev %}<a class="btn btn--ghost btn--sm" href="{{ url_for(endpoint, page=page.page - 1, **args) }}">← Anterior</a>{% endif %}
+  <span class="muted">Página {{ page.page }} de {{ page.pages }}</span>
+  {% if page.has_next %}<a class="btn btn--ghost btn--sm" href="{{ url_for(endpoint, page=page.page + 1, **args) }}">Siguiente →</a>{% endif %}
+</nav>
+{% endif %}
+{%- endmacro %}
+
+{% macro modal(id, title) -%}
+<dialog class="modal" id="{{ id }}" aria-labelledby="{{ id }}-title">
+  <div class="modal__head">
+    <h3 id="{{ id }}-title">{{ title }}</h3>
+    <button type="button" class="icon-btn" data-close-modal aria-label="Cerrar">×</button>
+  </div>
+  <div class="modal__body">{{ caller() }}</div>
+</dialog>
+{%- endmacro %}
+
+{% macro disclaimer() -%}
+<p class="disclaimer">Los tiempos y cantidades son aproximados y pueden variar según los ingredientes y el método de cocción. Los costos son estimaciones de referencia.</p>
+{%- endmacro %}

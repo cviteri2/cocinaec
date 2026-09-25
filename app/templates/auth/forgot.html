@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+{% block title %}Recuperar contraseña{% endblock %}
+{% block container_class %}container--form{% endblock %}
+{% block content %}
+<div class="page-head center">
+  <h1>¿Olvidaste tu contraseña?</h1>
+  <p>Escribe tu email y te enviaremos un enlace para crear una nueva.</p>
+</div>
+<form method="post" class="card form" novalidate>
+  {{ ui.csrf() }}
+  {{ ui.form_field("email", "Email", type="email", required=True, autocomplete="email") }}
+  {{ ui.button("Enviar enlace", block=True) }}
+  <p class="hint mb-0">El envío de correos estará disponible próximamente.</p>
+  <p class="center mb-0"><a href="{{ url_for('auth.login') }}">Volver a ingresar</a></p>
+</form>
+{% endblock %}

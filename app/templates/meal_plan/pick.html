@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+{% block title %}Elegir receta{% endblock %}
+{% block container_class %}container--narrow{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('meal_plan.index', week=week.isoformat()) }}">← Volver al plan</a></p>
+<div class="page-head">
+  <h1>{{ day_name }} · {{ meal_name }}</h1>
+  <p>Elige una receta para este día.</p>
+</div>
+<form method="get" class="search-bar">
+  <input type="hidden" name="day" value="{{ day }}"><input type="hidden" name="meal" value="{{ meal }}">
+  <input type="hidden" name="week" value="{{ week.isoformat() }}">
+  <input type="search" name="q" value="{{ q }}" placeholder="Buscar receta o ingrediente" aria-label="Buscar">
+  {{ ui.button("Buscar", variant="ghost") }}
+</form>
+{% if recipes %}
+<ul class="shop-list">
+  {% for recipe in recipes %}
+  <li class="shop-item">
+    <span class="recipe-card__media" style="height:44px;width:44px;font-size:24px;border-radius:10px;border:0">{{ recipe.emoji }}</span>
+    <div class="shop-item__text">
+      <span class="shop-item__name">{{ recipe.name }}</span>
+      <span class="muted small">⏱ {{ recipe.total_minutes | minutes }} · 💰 {{ recipe.estimated_cost | money }}</span>
+    </div>
+    <form method="post" action="{{ url_for('meal_plan.set_item') }}" class="inline-form">
+      {{ ui.csrf() }}
+      <input type="hidden" name="day" value="{{ day }}"><input type="hidden" name="meal" value="{{ meal }}">
+      <input type="hidden" name="week" value="{{ week.isoformat() }}"><input type="hidden" name="recipe_id" value="{{ recipe.id }}">
+      {{ ui.button("Elegir", size="sm") }}
+    </form>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+  {{ ui.empty_state("🔎", "No encontramos recetas.", "Prueba con otra búsqueda.") }}
+{% endif %}
+{% endblock %}

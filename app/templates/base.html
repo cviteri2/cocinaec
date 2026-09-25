@@ -1,0 +1,31 @@
+{% import "components/ui.html" as ui with context %}
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}¿Qué cocino hoy?{% endblock %} · Menos pensar. Más disfrutar.</title>
+  <meta name="description" content="Dime qué tienes, cuánto tiempo tienes y cuánto quieres gastar. Nosotros hacemos el resto.">
+  <meta name="theme-color" content="#15803D">
+  <link rel="icon" href="{{ url_for('static', filename='images/favicon.svg') }}" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  <a class="skip-link" href="#contenido">Saltar al contenido</a>
+  {% include "partials/navbar.html" %}
+
+  <main id="contenido" class="page">
+    <div class="container {% block container_class %}{% endblock %}">
+      {% include "partials/flashes.html" %}
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+  {% include "partials/footer.html" %}
+  {% include "partials/bottom_nav.html" %}
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</body>
+</html>

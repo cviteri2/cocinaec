@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+{% block title %}Mis favoritas{% endblock %}
+{% block content %}
+<div class="page-head page-head--row">
+  <div><h1>Mis recetas favoritas ❤️</h1><p>Las que siempre salen bien.</p></div>
+  {% if favorites %}{{ ui.post_button(url_for('recipes.clear_favorites'), "Eliminar todas", variant="danger", confirm="¿Eliminar todas tus recetas favoritas?") }}{% endif %}
+</div>
+{% if favorites %}
+  {% set ids = favorites | map(attribute="recipe_id") | list %}
+  <div class="grid grid--3">
+    {% for fav in favorites %}{{ ui.recipe_card(fav.recipe, favorite_ids=ids) }}{% endfor %}
+  </div>
+{% else %}
+  {{ ui.empty_state("❤️", "Todavía no tienes recetas favoritas.", "Cuando una receta te guste, toca “Guardar” y la encontrarás aquí.",
+     "Buscar recetas", url_for('recipes.list_recipes')) }}
+{% endif %}
+{% endblock %}

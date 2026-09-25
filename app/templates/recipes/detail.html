@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+{% block title %}{{ recipe.name }}{% endblock %}
+{% block content %}
+{% set people = match.people %}
+<p class="mb-2"><a href="{{ request.referrer if request.referrer and request.host in request.referrer else url_for('recipes.list_recipes') }}">← Volver</a></p>
+
+<section class="recipe-hero">
+  <div class="recipe-hero__emoji" aria-hidden="true">{{ recipe.emoji }}</div>
+  <div>
+    <h1>{{ recipe.name }}</h1>
+    <p class="muted">{{ recipe.description }}</p>
+    <ul class="meta">
+      <li>⏱ {{ recipe.total_minutes | minutes }} <span class="small">({{ recipe.prep_minutes }} prep. + {{ recipe.cook_minutes }} cocción)</span></li>
+      <li>👨‍👩‍👧‍👦 {{ people }} {{ "persona" if people == 1 else "personas" }}</li>
+      <li title="Costo estimado de referencia">💰 {{ match.total_cost | money }} en total (estimado)</li>
+      <li>⭐ {{ recipe.difficulty }}</li>
+      {% if recipe.equipment %}<li>🔥 Necesitas {{ recipe.equipment }}</li>{% endif %}
+    </ul>
+    <div class="chips mb-2">
+      {% for c in recipe.categories %}<a class="tag" href="{{ url_for('recipes.list_recipes', category=c.slug) }}">{{ c.emoji }} {{ c.name }}</a>{% endfor %}
+    </div>
+    <div class="actions">
+      {{ ui.favorite_button(recipe, is_favorite, next=url_for('recipes.detail', slug=recipe.slug, people=people)) }}
+      {% if current_user.is_authenticated %}
+        <form method="post" action="{{ url_for('recipes.cooked', slug=recipe.slug) }}" class="inline-form">
+          {{ ui.csrf() }}<input type="hidden" name="servings" value="{{ people }}">
+          {{ ui.button("La preparé", variant="ghost", size="sm", icon="✅") }}
+        </form>
+        <button type="button" class="btn btn--ghost btn--sm" data-open-modal="plan-modal"><span aria-hidden="true">📅</span> Agregar al plan</button>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<div class="recipe-layout">
+  <div class="stack">
+    <section class="card">
+      <div class="card__head">
+        <h2>Ingredientes</h2>
+        <form method="get" class="people-switch">
+          <label for="people-select" class="small muted">Para</label>
+          <select id="people-select" name="people" data-autosubmit>
+            {% for n in range(1, 13) %}<option value="{{ n }}" {{ "selected" if n == people }}>{{ n }} {{ "persona" if n == 1 else "personas" }}</option>{% endfor %}
+          </select>
+          <button type="submit" class="btn btn--ghost btn--sm" data-autosubmit-hide>Ver</button>
+        </form>
+      </div>
+      <p class="coverage__text mb-1">Tienes {{ match.have_count }} de {{ match.required_count }} ingredientes <strong>({{ match.coverage_pct }}%)</strong></p>
+      <ul class="ingredient-list">
+        {% for ri in recipe.ingredients %}
+          {% set ing = ri.ingredient %}
+          {% set skipped = ri in match.skipped_optional %}
+          <li>
+            {% if ing.is_staple %}<span class="status-dot status-dot--staple" title="Básico de despensa">·</span>
+            {% elif ri.ingredient_id in missing_ids %}<span class="status-dot status-dot--miss" title="Te falta">!</span>
+            {% elif ri.optional and ri.ingredient_id not in have_ids and ri.ingredient_id not in substituted %}<span class="status-dot status-dot--staple" title="Opcional">+</span>
+            {% else %}<span class="status-dot status-dot--have" title="Lo tienes">✓</span>{% endif %}
+            <div>
+              <span class="{{ 'muted' if skipped }}">{{ ing.name }}</span>
+              {% if ri.optional %}<span class="muted small">(opcional{{ ", omítelo por tus preferencias" if skipped }})</span>{% endif %}
+              {% if ri.note and ri.note != "al gusto" %}<span class="muted small">· {{ ri.note }}</span>{% endif %}
+              {% if ri.ingredient_id in substituted %}<p class="subs">↺ Usa tu {{ substituted[ri.ingredient_id].name | lower }}</p>{% endif %}
+            </div>
+            <span class="qty">{{ "al gusto" if ri.note == "al gusto" else (ri.quantity * match.scale) | qty(ri.unit) }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    {% if match.missing %}
+    <section class="missing-box">
+      <h3>Te falta{{ "n" if match.missing | length > 1 }} {{ match.missing | length }} ingrediente{{ "s" if match.missing | length > 1 }}</h3>
+      <ul>
+        {% for ri in match.missing %}
+          <li><strong>{{ ri.ingredient.name }}</strong> <span class="muted small">{{ (ri.quantity * match.scale) | qty(ri.unit) }}</span>
+            {% if substitutions.get(ri.ingredient_id) %}
+              <p class="subs">¿No tienes {{ ri.ingredient.name | lower }}? Puedes sustituirlo por:
+                {% for sub in substitutions[ri.ingredient_id] %}{{ sub.substitute.name | lower }}{{ ", " if not loop.last }}{% endfor %}.</p>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+      <p class="small">💰 Costo estimado de lo que falta: <strong>{{ match.missing_cost | money }}</strong></p>
+      {% if current_user.is_authenticated %}
+        <form method="post" action="{{ url_for('recipes.missing_to_list', slug=recipe.slug) }}">
+          {{ ui.csrf() }}<input type="hidden" name="people" value="{{ people }}">
+          {{ ui.button("Agregar a mi lista de compras", variant="accent", icon="🛒", block=True) }}
+        </form>
+      {% else %}
+        {{ ui.button("Ingresa para agregarlos a tu lista", href=url_for('auth.login', next=request.full_path), variant="accent", icon="🛒", block=True) }}
+      {% endif %}
+    </section>
+    {% else %}
+    <section class="card card--cream"><h3 class="mb-0">✅ ¡Tienes todo lo necesario! A cocinar.</h3></section>
+    {% endif %}
+  </div>
+
+  <section class="card">
+    <h2>Preparación</h2>
+    <ol class="steps">
+      {% for step in recipe.steps %}<li>{{ step.text }}</li>{% endfor %}
+    </ol>
+    {{ ui.disclaimer() }}
+  </section>
+</div>
+
+{% if current_user.is_authenticated %}
+{% call ui.modal("plan-modal", "Agregar al plan semanal") %}
+  <form method="post" action="{{ url_for('meal_plan.set_item') }}" class="form">
+    {{ ui.csrf() }}
+    <input type="hidden" name="recipe_id" value="{{ recipe.id }}">
+    <div class="field">
+      <label for="plan-day">Día</label>
+      <select id="plan-day" name="day">
+        {% for name in day_names %}<option value="{{ loop.index0 }}" {{ "selected" if loop.index0 == today.weekday() }}>{{ name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label>Comida</label>
+      {{ ui.choice_pills("meal", plan_meals.items(), "almuerzo") }}
+    </div>
+    {{ ui.button("Agregar", block=True) }}
+  </form>
+{% endcall %}
+{% endif %}
+{% endblock %}

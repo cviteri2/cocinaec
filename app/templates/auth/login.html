@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+{% block title %}Ingresar{% endblock %}
+{% block container_class %}container--form{% endblock %}
+{% block content %}
+<div class="page-head center">
+  <h1>Hola de nuevo 👋</h1>
+  <p>Ingresa para ver tu inventario, tu lista y tu plan.</p>
+</div>
+<form method="post" class="card form" novalidate>
+  {{ ui.csrf() }}
+  <input type="hidden" name="next" value="{{ next }}">
+  {{ ui.form_field("email", "Email", email, type="email", required=True, autocomplete="email") }}
+  {{ ui.form_field("password", "Contraseña", type="password", required=True, autocomplete="current-password") }}
+  <label class="check-line"><input type="checkbox" name="remember" value="1"> Mantener mi sesión iniciada</label>
+  {{ ui.button("Ingresar", block=True) }}
+  <div class="actions" style="justify-content:space-between">
+    <a href="{{ url_for('auth.forgot_password') }}">¿Olvidaste tu contraseña?</a>
+    <a href="{{ url_for('auth.register') }}">Crear cuenta</a>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+{% block title %}{{ "Editar" if recipe else "Nueva" }} receta · Admin{% endblock %}
+{% block content %}
+<div class="page-head"><h1>{{ "Editar " ~ recipe.name if recipe else "Nueva receta" }}</h1></div>
+{% include "admin/_nav.html" %}
+{% for e in errors %}{{ ui.alert(e, "error") }}{% endfor %}
+<form method="post" class="card form">
+  {{ ui.csrf() }}
+  <div class="form-row">
+    {{ ui.form_field("name", "Nombre", form.name, required=True) }}
+    {{ ui.form_field("emoji", "Emoji", form.emoji) }}
+  </div>
+  <div class="field"><label for="f-desc">Descripción</label><textarea id="f-desc" name="description" maxlength="1000">{{ form.description }}</textarea></div>
+  <div class="grid grid--4">
+    {{ ui.form_field("servings", "Porciones", form.servings, type="number", required=True) }}
+    {{ ui.form_field("prep_minutes", "Preparación (min)", form.prep_minutes, type="number", required=True) }}
+    {{ ui.form_field("cook_minutes", "Cocción (min)", form.cook_minutes, type="number", required=True) }}
+    <div class="field"><label for="f-diff">Dificultad</label><select id="f-diff" name="difficulty">{% for d in difficulties %}<option {{ "selected" if d == form.difficulty }}>{{ d }}</option>{% endfor %}</select></div>
+  </div>
+  {{ ui.form_field("equipment", "Equipo necesario (opcional)", form.equipment, placeholder="Ej. horno") }}
+  <div class="field"><label>Tipo de comida</label>{{ ui.choice_pills("meal_types", meal_types.items(), form.meal_types, type="checkbox") }}</div>
+  <div class="field"><label>Categorías</label>
+    <div class="pills">{% for c in categories %}<label class="pill"><input type="checkbox" name="categories" value="{{ c.slug }}" {{ "checked" if c.slug in form.categories }}><span>{{ c.emoji }} {{ c.name }}</span></label>{% endfor %}</div></div>
+  <div class="field">
+    <label for="f-ing">Ingredientes</label>
+    <textarea id="f-ing" name="ingredients_text" class="mono" rows="12">{{ form.ingredients_text }}</textarea>
+    <small class="hint">Uno por línea: <code>Ingrediente | cantidad | nota | opcional</code>. La cantidad va en la unidad base del ingrediente (g, ml o unidad). Ej.: <code>Tomate | 300 | picado</code></small>
+    <details class="more"><summary>Ver ingredientes disponibles</summary><p class="small muted">{{ ingredient_names | join(" · ") }}</p></details>
+  </div>
+  <div class="field">
+    <label for="f-steps">Pasos</label>
+    <textarea id="f-steps" name="steps_text" rows="10">{{ form.steps_text }}</textarea>
+    <small class="hint">Un paso por línea.</small>
+  </div>
+  <label class="check-line"><input type="checkbox" name="active" value="1" {{ "checked" if form.active }}> Receta activa (visible para usuarios)</label>
+  <div class="actions">{{ ui.button("Guardar receta") }}<a class="btn btn--ghost" href="{{ url_for('admin.recipes') }}">Cancelar</a></div>
+</form>
+{% endblock %}

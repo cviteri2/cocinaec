@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+{% block title %}Nueva contraseña{% endblock %}
+{% block container_class %}container--form{% endblock %}
+{% block content %}
+<div class="page-head center"><h1>Crea una nueva contraseña</h1></div>
+<form method="post" class="card form" novalidate>
+  {{ ui.csrf() }}
+  {% if error %}{{ ui.alert(error, "error") }}{% endif %}
+  {{ ui.form_field("password", "Nueva contraseña", type="password", required=True, autocomplete="new-password",
+                   hint="Mínimo 8 caracteres, con letras y números.") }}
+  {{ ui.form_field("password_confirm", "Repite la contraseña", type="password", required=True, autocomplete="new-password") }}
+  {{ ui.button("Guardar contraseña", block=True) }}
+</form>
+{% endblock %}

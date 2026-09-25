@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+{% block title %}Inventario{% endblock %}
+{% block content %}
+<div class="page-head page-head--row">
+  <div><h1>Mi inventario</h1><p>Esto es lo que tengo en casa.</p></div>
+  {% if items %}
+  <div class="actions">
+    {{ ui.button("¿Qué cocino con esto?", href=url_for('cook.pantry', i=items | map(attribute='ingredient_id') | list), variant="primary", icon="🍳") }}
+  </div>
+  {% endif %}
+</div>
+
+{% if use_first %}
+<section class="card card--cream mb-2">
+  <h3>⏰ Aprovecha primero</h3>
+  <p class="muted small">Estos ingredientes vencen pronto. Úsalos antes para no desperdiciar.</p>
+  <div class="use-first">
+    {% for item in use_first %}
+      <span class="tag {{ 'tag--red' if item.expiration_date < today else 'tag--warn' }}">
+        {{ item.ingredient.emoji }} {{ item.ingredient.name }} ·
+        {% if item.expiration_date < today %}venció{% elif item.expiration_date == today %}vence hoy{% else %}vence el {{ item.expiration_date | date_es }}{% endif %}
+      </span>
+    {% endfor %}
+  </div>
+  <div class="mt-2">{{ ui.button("Ver recetas con estos ingredientes", href=url_for('cook.pantry', i=use_first | map(attribute='ingredient_id') | list), variant="secondary", size="sm") }}</div>
+</section>
+{% endif %}
+
+<details class="card mb-2 more" {{ "open" if not items }}>
+  <summary>Agregar ingrediente</summary>
+  <form method="post" action="{{ url_for('inventory.add') }}" class="form">
+    {{ ui.csrf() }}
+    {% set item = None %}
+    {% include "inventory/_form.html" %}
+    <div>{{ ui.button("Agregar al inventario", icon="➕") }}</div>
+  </form>
+</details>
+
+{% if items %}
+<div class="card">
+  <div class="table-wrap">
+  <table class="table table--stack">
+    <thead><tr><th>Ingrediente</th><th>Cantidad</th><th>Vence</th><th></th></tr></thead>
+    <tbody>
+    {% for item in items %}
+      <tr>
+        <td><strong>{{ item.ingredient.emoji }} {{ item.ingredient.name }}</strong></td>
+        <td data-label="Cantidad">{{ (item.quantity | qty(item.unit)) or "—" }}</td>
+        <td data-label="Vence">
+          {% if item.expiration_date %}
+            <span class="{{ 'tag tag--red' if item.expiration_date < today else ('tag tag--warn' if item in use_first else '') }}">{{ item.expiration_date | date_es }}</span>
+          {% else %}<span class="muted">—</span>{% endif %}
+        </td>
+        <td class="actions-cell">
+          <div class="actions actions--end">
+            <a class="btn btn--ghost btn--sm" href="{{ url_for('inventory.edit', item_id=item.id) }}">Editar</a>
+            {{ ui.post_button(url_for('inventory.delete', item_id=item.id), "Eliminar", variant="danger", confirm="¿Eliminar " ~ item.ingredient.name ~ " del inventario?") }}
+          </div>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+<div class="actions actions--end mt-2">
+  {{ ui.post_button(url_for('inventory.clear'), "Vaciar inventario", variant="danger", confirm="¿Vaciar todo tu inventario?") }}
+</div>
+{% else %}
+  {{ ui.empty_state("🧺", "Tu refrigeradora está esperando una idea.",
+     "Agrega algunos ingredientes y veremos qué podemos preparar.") }}
+{% endif %}
+{% endblock %}

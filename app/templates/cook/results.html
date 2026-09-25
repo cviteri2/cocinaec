@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+{% block title %}Ideas para hoy{% endblock %}
+{% block content %}
+<div class="page-head page-head--row">
+  <div>
+    <h1>{% if matches %}Encontramos estas ideas para ti 🍽️{% else %}Mmm, no encontramos una buena opción{% endif %}</h1>
+    <p>
+      👨‍👩‍👧‍👦 {{ criteria.people }} {{ "persona" if criteria.people == 1 else "personas" }}
+      {% if criteria.meal_type %} · {{ MEAL_TYPES[criteria.meal_type] }}{% endif %}
+      · ⏱ {{ criteria.max_minutes | minutes }}
+      · 💰 {{ "Hasta " ~ (criteria.budget | money) ~ " adicionales" if criteria.budget else "Sin límite específico" }}
+      · 🧺 {{ criteria.have_ids | length }} ingrediente{{ "s" if criteria.have_ids | length != 1 }}
+    </p>
+  </div>
+  {{ ui.button("Cambiar búsqueda", href=url_for('cook.form'), variant="ghost", icon="✏️") }}
+</div>
+
+{% if unknown %}
+  {{ ui.alert("No reconocimos: " ~ (unknown | join(", ")) ~ ". Prueba con otro nombre o elígelo de la lista.", "info") }}
+{% endif %}
+
+{% if matches %}
+  <p class="muted">Elegimos estas opciones según lo que tienes y tus preferencias.</p>
+  <div class="grid grid--3">
+    {% for match in matches %}{{ ui.recipe_card(match.recipe, match=match, favorite_ids=favorite_ids) }}{% endfor %}
+  </div>
+  <p class="hint mt-3">💰 Costo estimado de referencia de lo que te falta comprar, para {{ criteria.people }} {{ "persona" if criteria.people == 1 else "personas" }}. No son precios actuales de supermercado.</p>
+{% else %}
+  {{ ui.empty_state("🤔", "Con esos ingredientes no encontramos recetas.",
+     "Prueba agregando algo más, dándote un poco más de tiempo o quitando alguna preferencia.",
+     "Cambiar búsqueda", url_for('cook.form')) }}
+{% endif %}
+
+<div class="card card--soft mt-3 center">
+  <p class="mb-1"><strong>¿Quieres ver todas las recetas que puedes hacer con lo que tienes?</strong></p>
+  {{ ui.button("Cocina con lo que tengo", href=url_for('cook.pantry', i=criteria.have_ids | list, people=criteria.people), variant="secondary") }}
+</div>
+{% endblock %}

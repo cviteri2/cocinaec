@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+{% block title %}Categorías · Admin{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Categorías</h1></div>
+{% include "admin/_nav.html" %}
+<div class="grid grid--2">
+  <section class="card">
+    <h2>De recetas</h2>
+    <ul class="mini-list">
+      {% for c in recipe_categories %}
+      <li>
+        <form method="post" action="{{ url_for('admin.edit_category', kind='recipe', category_id=c.id) }}" class="price-form">
+          {{ ui.csrf() }}<input name="emoji" value="{{ c.emoji }}" aria-label="Emoji" style="width:52px"><input name="name" value="{{ c.name }}" aria-label="Nombre" style="width:170px">
+          <button class="btn btn--ghost btn--sm">Guardar</button>
+        </form>
+        {{ ui.post_button(url_for('admin.delete_category', kind='recipe', category_id=c.id), "🗑️", confirm="¿Eliminar la categoría " ~ c.name ~ "?") }}
+      </li>
+      {% endfor %}
+    </ul>
+    <form method="post" class="add-bar mt-2">
+      {{ ui.csrf() }}<input type="hidden" name="kind" value="recipe">
+      <input name="emoji" placeholder="🍽️" aria-label="Emoji" style="flex:0 0 64px"><input name="name" placeholder="Nueva categoría" required aria-label="Nombre">
+      {{ ui.button("Agregar", size="sm") }}
+    </form>
+  </section>
+  <section class="card">
+    <h2>De ingredientes</h2>
+    <ul class="mini-list">
+      {% for c in ingredient_categories %}
+      <li>
+        <form method="post" action="{{ url_for('admin.edit_category', kind='ingredient', category_id=c.id) }}" class="price-form">
+          {{ ui.csrf() }}<input name="emoji" value="{{ c.emoji }}" aria-label="Emoji" style="width:52px"><input name="name" value="{{ c.name }}" aria-label="Nombre" style="width:150px">
+          <select name="shopping_group" aria-label="Grupo en lista de compras" style="width:auto;padding:8px">{% for k, v in shopping_groups.items() %}<option value="{{ k }}" {{ "selected" if k == c.shopping_group }}>{{ v }}</option>{% endfor %}</select>
+          <button class="btn btn--ghost btn--sm">Guardar</button>
+        </form>
+        {% if not c.ingredients %}{{ ui.post_button(url_for('admin.delete_category', kind='ingredient', category_id=c.id), "🗑️", confirm="¿Eliminar?") }}{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    <form method="post" class="add-bar mt-2">
+      {{ ui.csrf() }}<input type="hidden" name="kind" value="ingredient">
+      <input name="emoji" placeholder="🥫" aria-label="Emoji" style="flex:0 0 64px"><input name="name" placeholder="Nueva categoría" required aria-label="Nombre">
+      <select name="shopping_group" aria-label="Grupo">{% for k, v in shopping_groups.items() %}<option value="{{ k }}">{{ v }}</option>{% endfor %}</select>
+      {{ ui.button("Agregar", size="sm") }}
+    </form>
+  </section>
+</div>
+{% endblock %}

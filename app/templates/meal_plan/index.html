@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+{% block title %}Plan semanal{% endblock %}
+{% block content %}
+{% set week_end = week.fromordinal(week.toordinal() + 6) %}
+<div class="page-head page-head--row">
+  <div>
+    <h1>Plan semanal</h1>
+    <p>Semana del {{ week | date_es }} al {{ week_end | date_es }}</p>
+  </div>
+  <nav class="week-nav" aria-label="Cambiar semana">
+    <a class="btn btn--ghost btn--sm" href="{{ url_for('meal_plan.index', week=prev_week.isoformat()) }}">← Anterior</a>
+    {% if not is_current %}<a class="btn btn--ghost btn--sm" href="{{ url_for('meal_plan.index') }}">Esta semana</a>{% endif %}
+    <a class="btn btn--ghost btn--sm" href="{{ url_for('meal_plan.index', week=next_week.isoformat()) }}">Siguiente →</a>
+  </nav>
+</div>
+
+{% if summary and summary.budget is not none %}
+<section class="budget mb-2" aria-label="Presupuesto">
+  <div class="budget__item"><span>Presupuesto semanal</span><strong>{{ summary.budget | money }}</strong></div>
+  <div class="budget__item"><span>Plan estimado</span><strong>{{ summary.estimated | money }}</strong></div>
+  <div class="budget__item {{ 'budget__item--ok' if summary.available >= 0 else 'budget__item--over' }}">
+    <span>{{ "Disponible" if summary.available >= 0 else "Te pasas por" }}</span>
+    <strong>{{ (summary.available | abs) | money }}</strong></div>
+</section>
+{% elif summary and plan.items %}
+<p class="muted">Plan estimado: <strong>{{ summary.estimated | money }}</strong> (costo estimado de referencia).</p>
+{% endif %}
+
+{% if plan and plan.items %}
+<div class="week">
+  {% for idx, day_name, meals in grid %}
+  {% set day_date = week.fromordinal(week.toordinal() + idx) %}
+  <div class="day {{ 'day--today' if day_date == today }}">
+    <div class="day__name">{{ day_name }} <span class="muted small">{{ day_date.day }}</span></div>
+    {% for meal_key, meal_label in plan_meals.items() %}
+      {% set item = meals[meal_key] %}
+      <div class="slot">
+        <span class="slot__label">{{ meal_label }}</span>
+        {% if item %}
+          <a class="slot__recipe" href="{{ url_for('recipes.detail', slug=item.recipe.slug, people=item.servings) }}">{{ item.recipe.emoji }} {{ item.recipe.name }}</a>
+          <div class="slot__foot">
+            <span class="muted small">{{ costs[item.id] | money }}</span>
+            {{ ui.post_button(url_for('meal_plan.delete_item', item_id=item.id), "×", variant="ghost", size="sm") }}
+          </div>
+        {% else %}
+          <a class="slot__add" href="{{ url_for('meal_plan.pick', day=idx, meal=meal_key, week=week.isoformat()) }}">＋ Agregar receta</a>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+</div>
+
+<div class="actions mt-3">
+  {{ ui.post_button(url_for('meal_plan.weekly_shopping'), "Generar lista de compras semanal", variant="accent", size=None, icon="🛒", fields={"week": week.isoformat()}) }}
+  {{ ui.post_button(url_for('meal_plan.clear'), "Borrar plan", variant="danger", size=None, confirm="¿Borrar el plan de esta semana?", fields={"week": week.isoformat()}) }}
+</div>
+<p class="hint mt-1">La lista semanal suma los ingredientes repetidos y omite lo que ya tienes en tu inventario y los básicos de despensa.</p>
+{% else %}
+  {{ ui.empty_state("📅", "Todavía no tienes un menú semanal.",
+     "Genera uno automático con tu presupuesto o agrega recetas día por día.") }}
+  <div class="week mt-2">
+    {% for idx, day_name, meals in grid %}
+    <div class="day"><div class="day__name">{{ day_name }}</div>
+      {% for meal_key, meal_label in plan_meals.items() %}
+        <div class="slot"><span class="slot__label">{{ meal_label }}</span>
+          <a class="slot__add" href="{{ url_for('meal_plan.pick', day=idx, meal=meal_key, week=week.isoformat()) }}">＋ Agregar</a></div>
+      {% endfor %}
+    </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<section class="grid grid--2 section">
+  <form method="post" action="{{ url_for('meal_plan.generate') }}" class="card form">
+    {{ ui.csrf() }}<input type="hidden" name="week" value="{{ week.isoformat() }}">
+    <h2>✨ Generar plan semanal</h2>
+    <p class="muted mb-0">Armamos un menú variado que intenta respetar tu presupuesto.{% if plan and plan.items %} Reemplaza el plan actual.{% endif %}</p>
+    <div class="form-row">
+      <div class="field"><label for="g-people">Personas</label>
+        <input id="g-people" type="number" name="people" min="1" max="20" value="{{ plan.people_count if plan else (pref.people_count if pref else 2) }}" required></div>
+      <div class="field"><label for="g-budget">Presupuesto semanal ($)</label>
+        <input id="g-budget" type="number" name="weekly_budget" min="1" step="any" inputmode="decimal" placeholder="Ej. 50" value="{{ '%g' % plan.weekly_budget if plan and plan.weekly_budget else '' }}"></div>
+    </div>
+    <div class="field"><label>Comidas por día</label>
+      {{ ui.choice_pills("meals", plan_meals.items(), ["almuerzo"], type="checkbox") }}</div>
+    <div class="field"><label>Preferencias</label>
+      <div class="pills">
+        {% for c in categories %}<label class="pill"><input type="checkbox" name="preferences" value="{{ c.slug }}" {{ "checked" if pref and c.slug in pref.food_preferences }}><span>{{ c.emoji }} {{ c.name }}</span></label>{% endfor %}
+      </div></div>
+    <div class="field"><label>Restricciones</label>
+      <div class="pills">
+        {% for key, label in restrictions.items() %}<label class="pill"><input type="checkbox" name="restrictions" value="{{ key }}" {{ "checked" if pref and key in pref.restrictions }}><span>{{ label }}</span></label>{% endfor %}
+      </div></div>
+    {{ ui.button("Generar plan", icon="✨") }}
+  </form>
+
+  {% if plan %}
+  <form method="post" action="{{ url_for('meal_plan.settings') }}" class="card form">
+    {{ ui.csrf() }}<input type="hidden" name="week" value="{{ week.isoformat() }}">
+    <h2>⚙️ Ajustes de esta semana</h2>
+    <div class="form-row">
+      <div class="field"><label for="s-people">Personas</label>
+        <input id="s-people" type="number" name="people" min="1" max="20" value="{{ plan.people_count }}"></div>
+      <div class="field"><label for="s-budget">Presupuesto semanal ($)</label>
+        <input id="s-budget" type="number" name="weekly_budget" min="1" step="any" value="{{ '%g' % plan.weekly_budget if plan.weekly_budget else '' }}"></div>
+    </div>
+    <label class="check-line"><input type="checkbox" name="apply_people" value="1" checked> Aplicar el número de personas a todas las comidas</label>
+    {{ ui.button("Guardar ajustes", variant="secondary") }}
+  </form>
+  {% endif %}
+</section>
+{% endblock %}

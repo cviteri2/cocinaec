@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+{% block title %}Precios · Admin{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Costos de referencia</h1>
+  <p>Estimaciones de referencia, no precios actuales de supermercado. Cada cambio guarda historial y recalcula las recetas.</p></div>
+{% include "admin/_nav.html" %}
+<form method="get" class="search-bar"><input type="search" name="q" value="{{ q }}" placeholder="Buscar ingrediente" aria-label="Buscar">{{ ui.button("Buscar", variant="ghost") }}</form>
+<div class="card table-wrap">
+<table class="table">
+  <thead><tr><th>Ingrediente</th><th>Actual</th><th>Fecha ref.</th><th>Nuevo costo</th></tr></thead>
+  <tbody>
+  {% for i in ingredients %}
+  {% set p = i.current_price %}
+  <tr>
+    <td>{{ i.emoji }} {{ i.name }}</td>
+    <td>{% if p %}{{ p.price | money }} / {{ p.per_quantity | qty(p.unit) }}{% else %}—{% endif %}</td>
+    <td class="small">{{ p.reference_date | date_es if p else "—" }}{% if p and p.source != "referencia" %} · {{ p.source }}{% endif %}</td>
+    <td>
+      <form method="post" class="price-form">
+        {{ ui.csrf() }}<input type="hidden" name="ingredient_id" value="{{ i.id }}"><input type="hidden" name="q" value="{{ q }}">
+        <span>$</span><input type="number" name="price" step="0.01" min="0" value="{{ '%.2f' % p.price if p else '' }}" aria-label="Precio" required>
+        <span class="small">por</span><input type="number" name="per_quantity" step="any" min="0" value="{{ '%g' % p.per_quantity if p else 1 }}" aria-label="Cantidad" required>
+        <span class="small">{{ i.unit }}</span>
+        <button class="btn btn--secondary btn--sm">Guardar</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

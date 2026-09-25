@@ -1,0 +1,32 @@
+{# Campos del formulario de inventario. Requiere: catalog, units, item (opcional) #}
+<div class="form-row">
+  <div class="field">
+    <label for="inv-ingredient">Ingrediente</label>
+    <select id="inv-ingredient" name="ingredient_id" required>
+      <option value="">Elige un ingrediente</option>
+      {% for category, ingredients in catalog %}
+        <optgroup label="{{ category.name }}">
+          {% for ing in ingredients | sort(attribute="name") %}
+            <option value="{{ ing.id }}" {{ "selected" if item and item.ingredient_id == ing.id }}>{{ ing.name }}</option>
+          {% endfor %}
+        </optgroup>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="field">
+    <label for="inv-exp">Vence (opcional)</label>
+    <input id="inv-exp" type="date" name="expiration_date" value="{{ item.expiration_date.isoformat() if item and item.expiration_date else '' }}">
+  </div>
+</div>
+<div class="form-row">
+  <div class="field">
+    <label for="inv-qty">Cantidad</label>
+    <input id="inv-qty" type="number" name="quantity" step="any" min="0" inputmode="decimal" placeholder="Ej. 2" value="{{ '%g' % item.quantity if item and item.quantity else '' }}">
+  </div>
+  <div class="field">
+    <label for="inv-unit">Unidad</label>
+    <select id="inv-unit" name="unit">
+      {% for value, label in units %}<option value="{{ value }}" {{ "selected" if item and item.unit == value }}>{{ label }}</option>{% endfor %}
+    </select>
+  </div>
+</div>

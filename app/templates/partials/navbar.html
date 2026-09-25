@@ -1,0 +1,46 @@
+{% import "components/ui.html" as ui with context %}
+{% set ep = request.endpoint or '' %}
+<header class="navbar">
+  <div class="container navbar__inner">
+    <a class="logo" href="{{ url_for('main.index') }}" aria-label="¿Qué cocino hoy? — inicio">
+      {{ ui.logo_icon() }}
+      <span class="logo__text"><span class="logo__main">¿Qué cocino</span> <span class="logo__accent">hoy?</span></span>
+    </a>
+
+    <nav class="navbar__links" aria-label="Principal">
+      <a href="{{ url_for('main.index') }}" class="{{ 'active' if ep == 'main.index' }}">Inicio</a>
+      <a href="{{ url_for('cook.form') }}" class="{{ 'active' if ep.startswith('cook.') }}">¿Qué cocino?</a>
+      <a href="{{ url_for('recipes.list_recipes') }}" class="{{ 'active' if ep in ('recipes.list_recipes', 'recipes.detail') }}">Recetas</a>
+      {% if current_user.is_authenticated %}
+        <a href="{{ url_for('inventory.index') }}" class="{{ 'active' if ep.startswith('inventory.') }}">Inventario</a>
+        <a href="{{ url_for('shopping.index') }}" class="{{ 'active' if ep.startswith('shopping.') }}">
+          Lista de compras{% if shopping_pending %} <span class="badge">{{ shopping_pending }}</span>{% endif %}
+        </a>
+        <a href="{{ url_for('meal_plan.index') }}" class="{{ 'active' if ep.startswith('meal_plan.') }}">Plan semanal</a>
+        <a href="{{ url_for('recipes.favorites') }}" class="{{ 'active' if ep == 'recipes.favorites' }}">Favoritos</a>
+      {% endif %}
+    </nav>
+
+    <div class="navbar__actions">
+      {% if current_user.is_authenticated %}
+        <details class="menu">
+          <summary class="avatar" aria-label="Mi cuenta">{{ current_user.first_name[:1] | upper }}</summary>
+          <div class="menu__panel">
+            <p class="menu__name">{{ current_user.full_name }}</p>
+            <a href="{{ url_for('profile.profile') }}">👤 Mi perfil</a>
+            <a href="{{ url_for('recipes.history') }}">🕒 Historial</a>
+            <a href="{{ url_for('profile.family') }}">👨‍👩‍👧 Mi familia</a>
+            {% if current_user.is_admin %}<a href="{{ url_for('admin.dashboard') }}">🛠️ Administración</a>{% endif %}
+            <form method="post" action="{{ url_for('auth.logout') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="menu__logout">Cerrar sesión</button>
+            </form>
+          </div>
+        </details>
+      {% else %}
+        <a class="btn btn--ghost btn--sm" href="{{ url_for('auth.login') }}">Ingresar</a>
+        <a class="btn btn--primary btn--sm hide-mobile" href="{{ url_for('auth.register') }}">Crear cuenta</a>
+      {% endif %}
+    </div>
+  </div>
+</header>

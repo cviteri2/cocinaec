@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+{% block title %}Mi familia{% endblock %}
+{% block container_class %}container--narrow{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Mi familia 👨‍👩‍👧</h1>
+  <p>Anota quién come en casa y qué prefiere. Pronto usaremos esto para recomendaciones familiares.</p>
+</div>
+
+{% if members %}
+<div class="card mb-2">
+  <ul class="mini-list">
+    {% for m in members %}
+    <li>
+      <div>
+        <strong>{{ m.name }}</strong>{% if m.relationship %} <span class="muted">· {{ m.relationship }}</span>{% endif %}
+        {% if m.food_preferences %}<p class="small mb-0">Le gusta: {{ m.food_preferences }}</p>{% endif %}
+        {% if m.avoided_foods %}<p class="small mb-0">No come: {{ m.avoided_foods }}</p>{% endif %}
+      </div>
+      {{ ui.post_button(url_for('profile.delete_family_member', member_id=m.id), "Eliminar", variant="danger", confirm="¿Eliminar a " ~ m.name ~ "?") }}
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% else %}
+  {{ ui.empty_state("👨‍👩‍👧", "Todavía no agregas a nadie.", None) }}
+{% endif %}
+
+<form method="post" class="card form mt-2">
+  {{ ui.csrf() }}
+  <h2>Agregar persona</h2>
+  <div class="form-row">
+    {{ ui.form_field("name", "Nombre", required=True) }}
+    {{ ui.form_field("relationship", "Relación", placeholder="Ej. hija, pareja, abuelo") }}
+  </div>
+  {{ ui.form_field("food_preferences", "Preferencias", placeholder="Ej. le encanta el arroz con pollo") }}
+  {{ ui.form_field("avoided_foods", "Alimentos que no consume", placeholder="Ej. pescado, cebolla") }}
+  <p class="hint mb-0">No registres información médica. Esta aplicación no sustituye la orientación de un profesional de salud.</p>
+  <div>{{ ui.button("Agregar", variant="secondary", icon="➕") }}</div>
+</form>
+{% endblock %}

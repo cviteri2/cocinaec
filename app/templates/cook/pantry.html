@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+{% block title %}Cocina con lo que tengo{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Cocina con lo que tengo</h1>
+  <p>Marca solo lo que hay en casa. Te mostramos lo que puedes preparar comprando lo mínimo.</p>
+</div>
+
+{% if unknown %}
+  {{ ui.alert("No reconocimos: " ~ (unknown | join(", ")) ~ ".", "info") }}
+{% endif %}
+
+{% if submitted and matches %}
+<section class="mb-2">
+  <h2>Puedes preparar:</h2>
+  <div class="grid grid--3">
+    {% for match in matches %}{{ ui.recipe_card(match.recipe, match=match, favorite_ids=(), compact=True) }}{% endfor %}
+  </div>
+</section>
+{% elif submitted and selected %}
+  {{ ui.empty_state("🤔", "Con eso no encontramos recetas.", "Agrega uno o dos ingredientes más y probamos de nuevo.") }}
+{% elif submitted %}
+  {{ ui.alert("Agrega al menos un ingrediente para encontrar recetas.", "error") }}
+{% endif %}
+
+<form method="get" action="{{ url_for('cook.pantry') }}" class="cook-form {{ 'mt-3' if submitted }}">
+  <input type="hidden" name="people" value="{{ people }}">
+  <fieldset class="card cook-step">
+    <legend><span class="step-num">🧺</span> ¿Qué tienes?</legend>
+    {% include "cook/_ingredient_picker.html" %}
+  </fieldset>
+  <div class="cook-submit">
+    {{ ui.button("Ver qué puedo cocinar", variant="primary", size="lg", icon="🍳") }}
+  </div>
+</form>
+{% endblock %}

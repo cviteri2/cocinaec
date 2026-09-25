@@ -1,0 +1,45 @@
+{# Selector de ingredientes con chips. Requiere: catalog, selected, staples #}
+{% import "components/ui.html" as ui with context %}
+<div class="field mb-2">
+  <label for="chip-filter" class="sr-only">Buscar ingrediente</label>
+  <input type="search" id="chip-filter" placeholder="🔎 Buscar ingrediente…" data-chip-filter="picker" autocomplete="off">
+</div>
+<div id="picker" class="ingredient-groups">
+  {% set rest = [] %}
+  {% for category, ingredients in catalog %}
+    {% set visible = ingredients | selectattr("featured") | list %}
+    {% set visible = visible + (ingredients | rejectattr("featured") | selectattr("id", "in", selected) | list) %}
+    {% if visible %}
+    <div class="ingredient-group">
+      <h4>{{ category.emoji }} {{ category.name }}</h4>
+      <div class="chips">
+        {% for ing in visible %}{{ ui.ingredient_chip(ing, checked=ing.id in selected) }}{% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  {% endfor %}
+
+  <details class="more">
+    <summary>Ver más ingredientes</summary>
+    <div class="ingredient-groups">
+      {% for category, ingredients in catalog %}
+        {% set hidden = ingredients | rejectattr("featured") | rejectattr("id", "in", selected) | list %}
+        {% if hidden %}
+        <div class="ingredient-group">
+          <h4>{{ category.emoji }} {{ category.name }}</h4>
+          <div class="chips">{% for ing in hidden %}{{ ui.ingredient_chip(ing) }}{% endfor %}</div>
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </details>
+
+  <div>
+    <div class="chips" id="extra-chips"></div>
+    <div class="extra-row" data-extra="extra-chips">
+      <input type="text" name="extra" placeholder="Agregar otro ingrediente (ej. choclo)" maxlength="80" aria-label="Agregar otro ingrediente">
+      <button type="button" class="btn btn--secondary btn--sm">Agregar</button>
+    </div>
+  </div>
+  <p class="hint mb-0">🧂 Asumimos que tienes {% for s in staples %}{{ s.name | lower }}{{ ", " if not loop.last }}{% endfor %}.</p>
+</div>

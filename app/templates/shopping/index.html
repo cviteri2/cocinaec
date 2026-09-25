@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+{% block title %}Lista de compras{% endblock %}
+{% block container_class %}container--narrow{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Mi lista de compras 🛒</h1>
+  {% if total %}<p><span data-pending-count>{{ shopping_pending }}</span> pendiente(s) de {{ total }}</p>{% endif %}
+</div>
+
+<form method="post" action="{{ url_for('shopping.add') }}" class="card mb-2">
+  {{ ui.csrf() }}
+  <div class="add-bar">
+    <input type="text" name="name" placeholder="Agregar algo (ej. detergente, pan)" maxlength="80" required aria-label="Producto">
+    <select name="category" aria-label="Categoría">
+      {% for key, label in shopping_groups.items() %}<option value="{{ key }}" {{ "selected" if key == "otros" }}>{{ label }}</option>{% endfor %}
+    </select>
+    {{ ui.button("Agregar", icon="➕") }}
+  </div>
+  <p class="hint mb-0 mt-1">Si es un ingrediente conocido, lo ubicamos en su categoría automáticamente.</p>
+</form>
+
+{% if groups %}
+  {% for key, label, items in groups %}
+  <section class="shop-group">
+    <h3>{{ label }}</h3>
+    <ul class="shop-list">
+      {% for item in items %}{{ ui.shopping_item(item) }}{% endfor %}
+    </ul>
+  </section>
+  {% endfor %}
+  <div class="actions">
+    {{ ui.post_button(url_for('shopping.clear_checked'), "Limpiar comprados", variant="secondary", size=None, icon="🧹") }}
+    {{ ui.post_button(url_for('shopping.clear'), "Vaciar lista", variant="danger", size=None, confirm="¿Vaciar toda la lista de compras?") }}
+  </div>
+{% else %}
+  {{ ui.empty_state("🛒", "Tu lista está vacía.",
+     "Cuando una receta necesite algo que no tienes, podrás agregarlo aquí.",
+     "¿Qué cocino hoy?", url_for('cook.form')) }}
+{% endif %}
+{% endblock %}

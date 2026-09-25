@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+{% block title %}Ingredientes · Admin{% endblock %}
+{% block content %}
+<div class="page-head page-head--row"><h1>Ingredientes</h1>{{ ui.button("Nuevo ingrediente", href=url_for('admin.ingredient_form'), icon="➕") }}</div>
+{% include "admin/_nav.html" %}
+<div class="card table-wrap">
+<table class="table">
+  <thead><tr><th>Ingrediente</th><th>Categoría</th><th>Unidad</th><th>Costo ref.</th><th>Marcas</th><th></th></tr></thead>
+  <tbody>
+  {% for i in ingredients %}
+    {% set p = i.current_price %}
+    <tr>
+      <td>{{ i.emoji }} {{ i.name }}{% if not i.active %} <span class="tag">Inactivo</span>{% endif %}</td>
+      <td>{{ i.category.name }}</td><td>{{ i.unit }}</td>
+      <td>{% if p %}{{ p.price | money }} / {{ p.per_quantity | qty(p.unit) }}{% else %}—{% endif %}</td>
+      <td class="small">{% if i.is_staple %}<span class="tag">básico</span>{% endif %}{% if i.featured %}<span class="tag tag--green">destacado</span>{% endif %}</td>
+      <td><a class="btn btn--ghost btn--sm" href="{{ url_for('admin.ingredient_form', ingredient_id=i.id) }}">Editar</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

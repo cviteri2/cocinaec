@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+{% block title %}¿Qué cocino hoy?{% endblock %}
+{% block content %}
+<section class="hero">
+  <div>
+    <span class="hero__eyebrow">Menos pensar. Más disfrutar.</span>
+    <h1>¿Qué cocino <span class="accent">hoy?</span></h1>
+    <p class="hero__sub">Dime qué tienes, cuánto tiempo tienes y cuánto quieres gastar. Nosotros hacemos el resto.</p>
+    <div class="hero__cta">
+      {{ ui.button("¿Qué cocinamos?", href=url_for('cook.form'), variant="primary", size="lg", icon="🍳") }}
+      <a href="{{ url_for('auth.register') }}" class="btn btn--ghost btn--lg">Crear cuenta gratis</a>
+    </div>
+    <p class="muted small mt-2">No necesitas cuenta para probar.</p>
+  </div>
+
+  <div class="card hero__demo" aria-label="Ejemplo de cómo funciona">
+    <div class="demo-line"><span class="label-sm">Tengo</span>
+      <div class="chips">
+        <span class="tag">🍗 Pollo</span><span class="tag">🥔 Papa</span><span class="tag">🍚 Arroz</span>
+        <span class="tag">🍅 Tomate</span><span class="tag">🧅 Cebolla</span>
+      </div>
+    </div>
+    <div class="demo-line"><span class="label-sm">Tiempo</span> ⏱ Tengo 40 minutos</div>
+    <div class="demo-line"><span class="label-sm">Somos</span> 👨‍👩‍👧‍👦 4 personas</div>
+    <div class="demo-line"><span class="label-sm">Gasto</span> 💰 Máximo $5 adicionales</div>
+    <div class="demo-result">
+      <strong>3 ideas para hoy 🍽️</strong>
+      <ol>
+        <li>Arroz con pollo · 40 min</li>
+        <li>Arroz frito (chaulafán) · 35 min</li>
+        <li>Pollo salteado con verduras · 30 min</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="features">
+    <div class="card feature"><div class="feature__icon">⏱</div><h3>¿Tienes poco tiempo?</h3><p>No hay problema. Te damos opciones que caben en tu tiempo.</p></div>
+    <div class="card feature"><div class="feature__icon">🥕</div><h3>Aprovecha lo que ya tienes</h3><p>Tu refrigeradora tiene más posibilidades de las que crees.</p></div>
+    <div class="card feature"><div class="feature__icon">💰</div><h3>Cocina rico sin gastar de más</h3><p>Te decimos cuánto te costaría lo que falta comprar.</p></div>
+    <div class="card feature"><div class="feature__icon">🛒</div><h3>¿Te falta algo?</h3><p>Con un toque lo agregas a tu lista de compras.</p></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section__head"><h2>Así de fácil</h2></div>
+  <ol class="steps-row">
+    <li><strong>Marca lo que tienes</strong><p class="muted small">Pollo, arroz, papa… lo que haya en casa.</p></li>
+    <li><strong>Dinos cuántos son</strong><p class="muted small">Y cuánto tiempo y dinero tienes.</p></li>
+    <li><strong>Elige una idea</strong><p class="muted small">Te mostramos hasta 3 opciones concretas.</p></li>
+    <li><strong>¡A cocinar!</strong><p class="muted small">Con ingredientes, cantidades y pasos.</p></li>
+  </ol>
+</section>
+
+<section class="section band">
+  <h2>Hoy también podemos resolver el almuerzo.</h2>
+  <p class="muted">Recetas ecuatorianas y caseras, pensadas para la cocina de todos los días.</p>
+  <div class="actions actions--center">
+    {{ ui.button("¿Qué cocinamos?", href=url_for('cook.form'), variant="primary", icon="🍳") }}
+    {{ ui.button("Ver recetas", href=url_for('recipes.list_recipes'), variant="ghost") }}
+  </div>
+</section>
+{% endblock %}

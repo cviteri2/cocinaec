@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+{% block title %}{{ title }}{% endblock %}
+{% block container_class %}container--narrow{% endblock %}
+{% block content %}
+{{ ui.empty_state("🍳" if code == 404 else "🥄", title, text, "Volver al inicio", url_for('main.index')) }}
+{% endblock %}

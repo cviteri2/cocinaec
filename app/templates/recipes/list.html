@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+{% block title %}Recetas{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>¿Qué quieres cocinar?</h1>
+  <p>Busca por receta o por ingrediente.</p>
+</div>
+
+<form method="get" class="card mb-2">
+  <div class="search-bar">
+    <input type="search" name="q" value="{{ filters.q }}" placeholder="Ej. pollo, arroz, sopa…" aria-label="Buscar recetas o ingredientes">
+    {{ ui.button("Buscar", icon="🔎") }}
+  </div>
+  <p class="label mb-1">Quiero algo:</p>
+  <div class="pills">
+    {% for key, label in quick_filters.items() %}
+    <label class="pill"><input type="checkbox" name="quick" value="{{ key }}" {{ "checked" if key in filters.quick }}><span>{{ label }}</span></label>
+    {% endfor %}
+  </div>
+  <details class="more" {{ "open" if filters.max_minutes or filters.max_cost or filters.difficulty or filters.meal or filters.category or filters.ingredient or filters.restrictions }}>
+    <summary>Más filtros</summary>
+    <div class="filters">
+      <div class="field"><label for="f-time">Tiempo máximo</label>
+        <select id="f-time" name="time"><option value="">Cualquiera</option>
+          {% for m in [15, 30, 45, 60, 90] %}<option value="{{ m }}" {{ "selected" if filters.max_minutes == m }}>{{ m }} min</option>{% endfor %}
+        </select></div>
+      <div class="field"><label for="f-cost">Costo máximo (4 porciones)</label>
+        <select id="f-cost" name="cost"><option value="">Cualquiera</option>
+          {% for c in [3, 5, 8, 10, 15] %}<option value="{{ c }}" {{ "selected" if filters.max_cost == c }}>Hasta ${{ c }}</option>{% endfor %}
+        </select></div>
+      <div class="field"><label for="f-diff">Dificultad</label>
+        <select id="f-diff" name="difficulty"><option value="">Cualquiera</option>
+          {% for d in difficulties %}<option {{ "selected" if filters.difficulty == d }}>{{ d }}</option>{% endfor %}
+        </select></div>
+      <div class="field"><label for="f-meal">Tipo de comida</label>
+        <select id="f-meal" name="meal"><option value="">Cualquiera</option>
+          {% for k, v in MEAL_TYPES.items() %}<option value="{{ k }}" {{ "selected" if filters.meal == k }}>{{ v }}</option>{% endfor %}
+        </select></div>
+      <div class="field"><label for="f-cat">Categoría</label>
+        <select id="f-cat" name="category"><option value="">Todas</option>
+          {% for c in categories %}<option value="{{ c.slug }}" {{ "selected" if filters.category == c.slug }}>{{ c.name }}</option>{% endfor %}
+        </select></div>
+      <div class="field"><label for="f-ing">Con ingrediente</label>
+        <select id="f-ing" name="ingredient"><option value="">Cualquiera</option>
+          {% for i in all_ingredients %}<option value="{{ i.id }}" {{ "selected" if filters.ingredient == i.id }}>{{ i.name }}</option>{% endfor %}
+        </select></div>
+      <div class="field" style="grid-column: span 2"><label>Preferencias</label>
+        <div class="pills">
+          {% for key, label in restrictions.items() %}
+          <label class="pill"><input type="checkbox" name="r" value="{{ key }}" {{ "checked" if key in filters.restrictions }}><span>{{ label }}</span></label>
+          {% endfor %}
+        </div></div>
+    </div>
+    <div class="actions mt-2">{{ ui.button("Aplicar filtros", variant="secondary", size="sm") }}
+      <a href="{{ url_for('recipes.list_recipes') }}" class="small">Limpiar</a></div>
+  </details>
+</form>
+
+<p class="muted">{{ page.total }} receta{{ "s" if page.total != 1 }}{% if filters.q %} para “{{ filters.q }}”{% endif %}{% if ingredient %} con {{ ingredient.name | lower }}{% endif %}</p>
+
+{% if page.items %}
+  <div class="grid grid--3">
+    {% for recipe in page.items %}{{ ui.recipe_card(recipe, favorite_ids=favorite_ids) }}{% endfor %}
+  </div>
+  {% set args = request.args.to_dict(flat=False) %}{% set _ = args.pop('page', None) %}
+  {{ ui.pagination(page, 'recipes.list_recipes', args) }}
+{% else %}
+  {{ ui.empty_state("🔎", "No encontramos recetas con esos filtros.", "Prueba con otra palabra o quita algunos filtros.",
+     "Ver todas las recetas", url_for('recipes.list_recipes')) }}
+{% endif %}
+{% endblock %}

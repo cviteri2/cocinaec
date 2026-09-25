@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+{% block title %}Recetas · Admin{% endblock %}
+{% block content %}
+<div class="page-head page-head--row"><h1>Recetas</h1>{{ ui.button("Nueva receta", href=url_for('admin.recipe_form'), icon="➕") }}</div>
+{% include "admin/_nav.html" %}
+<form method="get" class="search-bar"><input type="search" name="q" value="{{ q }}" placeholder="Buscar receta" aria-label="Buscar">{{ ui.button("Buscar", variant="ghost") }}</form>
+<div class="card table-wrap">
+<table class="table">
+  <thead><tr><th>Receta</th><th>Tiempo</th><th>Porciones</th><th>Costo est.</th><th>Estado</th><th></th></tr></thead>
+  <tbody>
+  {% for r in recipes %}
+    <tr>
+      <td>{{ r.emoji }} <a href="{{ url_for('recipes.detail', slug=r.slug) }}">{{ r.name }}</a></td>
+      <td>{{ r.total_minutes | minutes }}</td><td>{{ r.servings }}</td><td>{{ r.estimated_cost | money }}</td>
+      <td>{% if r.active %}<span class="tag tag--green">Activa</span>{% else %}<span class="tag">Oculta</span>{% endif %}</td>
+      <td><div class="actions actions--end">
+        <a class="btn btn--ghost btn--sm" href="{{ url_for('admin.recipe_form', recipe_id=r.id) }}">Editar</a>
+        {{ ui.post_button(url_for('admin.toggle_recipe', recipe_id=r.id), "Ocultar" if r.active else "Activar") }}
+      </div></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

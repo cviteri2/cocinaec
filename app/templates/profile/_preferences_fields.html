@@ -1,0 +1,69 @@
+{# Campos de preferencias compartidos por onboarding y perfil.
+   Requiere: pref, categories, restrictions, catalog, time_options, people_options, budget_options, step_wrap #}
+{% import "components/ui.html" as ui with context %}
+{% set wrap = "ob-step card cook-step" if onboarding else "field" %}
+
+<fieldset class="{{ wrap }}">
+  <legend>¿Para cuántas personas cocinas normalmente?</legend>
+  <div class="pills">
+    {% for n in people_options %}
+    <label class="pill"><input type="radio" name="people_count" value="{{ n }}" {{ "checked" if pref and (n == pref.people_count or (n == 6 and pref.people_count > 6)) }}><span>{{ "6+" if n == 6 else n }}</span></label>
+    {% endfor %}
+  </div>
+</fieldset>
+
+<fieldset class="{{ wrap }}">
+  <legend>¿Cuánto tiempo tienes normalmente?</legend>
+  {% set time_labels = {15: "15 minutos", 30: "30 minutos", 45: "45 minutos", 60: "60 minutos", 0: "Más de 1 hora"} %}
+  <div class="pills">
+    {% for value, _ in time_options %}
+    <label class="pill"><input type="radio" name="default_time" value="{{ value }}" {{ "checked" if pref and (pref.default_time or 0) == value }}><span>{{ time_labels[value] }}</span></label>
+    {% endfor %}
+  </div>
+  {% if not onboarding %}
+  <p class="label mt-2 mb-1">Presupuesto habitual por comida</p>
+  <div class="pills">
+    {% for value, label in budget_options %}
+    <label class="pill"><input type="radio" name="default_budget" value="{{ value }}" {{ "checked" if pref and (pref.default_budget or 0) | int == value }}><span>{{ label }}</span></label>
+    {% endfor %}
+  </div>
+  {% else %}
+  <input type="hidden" name="default_budget" value="{{ (pref.default_budget or 5) if pref else 5 }}">
+  {% endif %}
+</fieldset>
+
+<fieldset class="{{ wrap }}">
+  <legend>¿Qué tipo de comida te gusta?</legend>
+  <p class="hint">Puedes elegir varias.</p>
+  <div class="pills">
+    {% for c in categories %}{% if c.slug != "internacional" %}
+    <label class="pill"><input type="checkbox" name="food_preferences" value="{{ c.slug }}" {{ "checked" if pref and c.slug in pref.food_preferences }}><span>{{ c.emoji }} {{ c.name }}</span></label>
+    {% endif %}{% endfor %}
+  </div>
+</fieldset>
+
+<fieldset class="{{ wrap }}">
+  <legend>¿Qué prefieres evitar?</legend>
+  <label class="check-line mb-2"><input type="checkbox" name="no_restrictions" value="1" {{ "checked" if pref and not pref.restrictions and not pref.excluded_ingredients }}> No tengo restricciones</label>
+  <p class="label mb-1">Preferencias alimentarias</p>
+  <div class="pills mb-2">
+    {% for key, label in restrictions.items() %}
+    <label class="pill"><input type="checkbox" name="restrictions" value="{{ key }}" {{ "checked" if pref and key in pref.restrictions }}><span>{{ label }}</span></label>
+    {% endfor %}
+  </div>
+  <p class="label mb-1">Ingredientes que prefieres evitar</p>
+  <details class="more" {{ "open" if pref and pref.excluded_ingredients }}>
+    <summary>Elegir ingredientes</summary>
+    <div class="ingredient-groups">
+      {% for category, ingredients in catalog %}
+      <div class="ingredient-group">
+        <h4>{{ category.emoji }} {{ category.name }}</h4>
+        <div class="chips">
+          {% for ing in ingredients %}{{ ui.ingredient_chip(ing, name="excluded_ingredients", checked=pref and ing.id in pref.excluded_ingredients) }}{% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </details>
+  <p class="hint mt-1">Son preferencias, no consejo médico. Si tienes alergias, verifica siempre los ingredientes y posibles contaminaciones cruzadas. Esta aplicación no sustituye la orientación de un profesional de salud.</p>
+</fieldset>

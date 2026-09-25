@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+{% block title %}Contacto{% endblock %}
+{% block container_class %}container--form{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Contacto</h1>
+  <p>¿Una idea, una receta que falta o algo que no funcionó? Cuéntanos.</p>
+</div>
+<form method="post" class="card form" novalidate>
+  {{ ui.csrf() }}
+  {{ ui.form_field("name", "Nombre", form.name, error=errors.name, required=True, autocomplete="name") }}
+  {{ ui.form_field("email", "Email", form.email, type="email", error=errors.email, required=True, autocomplete="email") }}
+  <div class="field {{ 'field--error' if errors.message }}">
+    <label for="f-message">Mensaje <span class="req">*</span></label>
+    <textarea id="f-message" name="message" maxlength="3000" required>{{ form.message }}</textarea>
+    {% if errors.message %}<small class="field__error">{{ errors.message }}</small>{% endif %}
+  </div>
+  {{ ui.button("Enviar mensaje", block=True) }}
+  <p class="hint mb-0">Usaremos tu email solo para responderte.</p>
+</form>
+{% endblock %}

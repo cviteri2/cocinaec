@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+{% block title %}Ingrediente · Admin{% endblock %}
+{% block container_class %}container--narrow{% endblock %}
+{% block content %}
+<div class="page-head"><h1>{{ "Editar " ~ ingredient.name if ingredient else "Nuevo ingrediente" }}</h1></div>
+{% include "admin/_nav.html" %}
+{% for e in errors %}{{ ui.alert(e, "error") }}{% endfor %}
+<form method="post" class="card form">
+  {{ ui.csrf() }}
+  <div class="form-row">
+    {{ ui.form_field("name", "Nombre", ingredient.name if ingredient else request.form.get("name", ""), required=True) }}
+    {{ ui.form_field("emoji", "Emoji", ingredient.emoji if ingredient else "") }}
+  </div>
+  <div class="form-row">
+    <div class="field"><label for="f-cat">Categoría</label><select id="f-cat" name="category_id">
+      {% for c in categories %}<option value="{{ c.id }}" {{ "selected" if ingredient and ingredient.category_id == c.id }}>{{ c.name }}</option>{% endfor %}</select></div>
+    <div class="field"><label for="f-unit">Unidad base</label><select id="f-unit" name="unit">
+      {% for u in ["g", "ml", "unidad"] %}<option {{ "selected" if ingredient and ingredient.unit == u }}>{{ u }}</option>{% endfor %}</select></div>
+  </div>
+  <div class="field"><label>Marcas</label>
+    <div class="pills">{% for field, label in flags %}<label class="pill"><input type="checkbox" name="{{ field }}" value="1" {{ "checked" if (ingredient and ingredient[field]) or (not ingredient and field == "active") }}><span>{{ label }}</span></label>{% endfor %}</div>
+    <small class="hint">Las marcas de carne, cerdo, pescado, mariscos, lácteo, huevo y picante alimentan los filtros de preferencias.</small></div>
+  {% if not ingredient %}
+  <div class="form-row">
+    {{ ui.form_field("price", "Costo de referencia ($)", type="number", attrs='step="any" min="0"') }}
+    {{ ui.form_field("per_quantity", "Por cantidad (en unidad base)", "1", type="number", attrs='step="any" min="0"', hint="Ej. 1000 si el precio es por kg y la unidad es g.") }}
+  </div>
+  {% else %}
+  <p class="hint">Para cambiar el costo usa <a href="{{ url_for('admin.prices', q=ingredient.name) }}">Precios</a>.</p>
+  {% endif %}
+  <div class="actions">{{ ui.button("Guardar") }}<a class="btn btn--ghost" href="{{ url_for('admin.ingredients') }}">Cancelar</a></div>
+</form>
+{% endblock %}

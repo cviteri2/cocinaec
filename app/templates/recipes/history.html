@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+{% block title %}Historial{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Lo que cocinaste recientemente</h1>
+  <p>Marca “La preparé” en una receta y aparecerá aquí.</p>
+</div>
+{% if entries %}
+<div class="card">
+  <div class="table-wrap">
+  <table class="table table--stack">
+    <thead><tr><th>Fecha</th><th>Receta</th><th>Porciones</th><th>Costo estimado</th><th></th></tr></thead>
+    <tbody>
+      {% for e in entries %}
+      <tr>
+        <td data-label="Fecha">{{ e.cooked_at | date_es }}</td>
+        <td><a href="{{ url_for('recipes.detail', slug=e.recipe.slug, people=e.servings) }}">{{ e.recipe.emoji }} {{ e.recipe.name }}</a></td>
+        <td data-label="Porciones">{{ e.servings or "—" }}</td>
+        <td data-label="Costo estimado">{{ e.estimated_cost | money }}</td>
+        <td class="actions-cell">{{ ui.post_button(url_for('recipes.delete_history', entry_id=e.id), "🗑️", variant="ghost", confirm="¿Eliminar este registro?") }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% else %}
+  {{ ui.empty_state("🕒", "Todavía no registras comidas.", "Cuando prepares una receta, toca “La preparé” para llevar tu historial.",
+     "¿Qué cocino hoy?", url_for('cook.form')) }}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+{% block title %}Mi perfil{% endblock %}
+{% block container_class %}container--narrow{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Mi perfil</h1>
+  <p>{{ current_user.email }} · {{ current_user.city }}</p>
+</div>
+
+<nav class="admin-nav" aria-label="Accesos rápidos">
+  <a href="{{ url_for('inventory.index') }}">🧺 Inventario</a>
+  <a href="{{ url_for('recipes.favorites') }}">❤️ Favoritos</a>
+  <a href="{{ url_for('recipes.history') }}">🕒 Historial</a>
+  <a href="{{ url_for('profile.family') }}">👨‍👩‍👧 Mi familia</a>
+  {% if current_user.is_admin %}<a href="{{ url_for('admin.dashboard') }}">🛠️ Administración</a>{% endif %}
+</nav>
+
+<div class="stack">
+  <form method="post" class="card form">
+    {{ ui.csrf() }}<input type="hidden" name="section" value="personal">
+    <h2>Tus datos</h2>
+    {% if errors.personal %}{{ ui.alert(errors.personal, "error") }}{% endif %}
+    <div class="form-row">
+      {{ ui.form_field("first_name", "Nombre", current_user.first_name, required=True) }}
+      {{ ui.form_field("last_name", "Apellido", current_user.last_name, required=True) }}
+    </div>
+    <div class="field"><label for="f-city">Ciudad</label>
+      <select id="f-city" name="city">{% for c in cities %}<option {{ "selected" if c == current_user.city }}>{{ c }}</option>{% endfor %}</select></div>
+    <div>{{ ui.button("Guardar datos", variant="secondary") }}</div>
+  </form>
+
+  <form method="post" class="card form">
+    {{ ui.csrf() }}<input type="hidden" name="section" value="preferences">
+    <h2>Tus preferencias</h2>
+    {% set onboarding = False %}
+    {% include "profile/_preferences_fields.html" %}
+    <div>{{ ui.button("Guardar preferencias", variant="secondary") }}</div>
+  </form>
+
+  <form method="post" class="card form">
+    {{ ui.csrf() }}<input type="hidden" name="section" value="password">
+    <h2>Cambiar contraseña</h2>
+    {% if errors.password %}{{ ui.alert(errors.password, "error") }}{% endif %}
+    {{ ui.form_field("current_password", "Contraseña actual", type="password", autocomplete="current-password", required=True) }}
+    <div class="form-row">
+      {{ ui.form_field("new_password", "Nueva contraseña", type="password", autocomplete="new-password", required=True) }}
+      {{ ui.form_field("new_password_confirm", "Repite la nueva", type="password", autocomplete="new-password", required=True) }}
+    </div>
+    <div>{{ ui.button("Cambiar contraseña", variant="secondary") }}</div>
+  </form>
+
+  <section class="card" id="privacidad">
+    <h2>Privacidad y tus datos</h2>
+    <p class="muted">Tú decides. Puedes descargar tus datos o eliminarlos cuando quieras.</p>
+    <div class="actions mb-2">
+      {{ ui.button("Descargar mis datos", href=url_for('profile.export'), variant="ghost", icon="⬇️") }}
+      <a href="{{ url_for('main.privacy') }}" class="small">Leer la política de privacidad</a>
+    </div>
+    <div class="actions">
+      {{ ui.post_button(url_for('profile.delete_data'), "Eliminar inventario", variant="danger", confirm="¿Eliminar todo tu inventario?", fields={"what": "inventory"}) }}
+      {{ ui.post_button(url_for('profile.delete_data'), "Eliminar lista de compras", variant="danger", confirm="¿Eliminar tu lista de compras?", fields={"what": "shopping"}) }}
+      {{ ui.post_button(url_for('profile.delete_data'), "Eliminar favoritas", variant="danger", confirm="¿Eliminar tus recetas favoritas?", fields={"what": "favorites"}) }}
+      {{ ui.post_button(url_for('profile.delete_data'), "Eliminar historial", variant="danger", confirm="¿Eliminar tu historial?", fields={"what": "history"}) }}
+    </div>
+    <hr class="mt-3" style="border:0;border-top:1px solid var(--border)">
+    <p class="mb-1"><strong>Eliminar mi cuenta</strong></p>
+    <p class="muted small">Se borran tu cuenta y todos tus datos personales. No se puede deshacer.</p>
+    {{ ui.button("Eliminar mi cuenta", href=url_for('profile.delete_account'), variant="danger", size="sm") }}
+  </section>
+</div>
+{% endblock %}

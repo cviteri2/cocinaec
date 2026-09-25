@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+{% block title %}Editar inventario{% endblock %}
+{% block container_class %}container--narrow{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Editar {{ item.ingredient.name | lower }}</h1></div>
+<form method="post" class="card form">
+  {{ ui.csrf() }}
+  {% include "inventory/_form.html" %}
+  <div class="actions">
+    {{ ui.button("Guardar cambios") }}
+    <a href="{{ url_for('inventory.index') }}" class="btn btn--ghost">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

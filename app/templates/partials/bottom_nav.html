@@ -1,0 +1,15 @@
+{% set ep = request.endpoint or '' %}
+<nav class="bottom-nav" aria-label="Navegación inferior">
+  <a href="{{ url_for('main.index') }}" class="{{ 'active' if ep == 'main.index' }}"><span>🏠</span>Inicio</a>
+  <a href="{{ url_for('cook.form') }}" class="{{ 'active' if ep.startswith('cook.') or ep.startswith('recipes.') and ep not in ('recipes.favorites', 'recipes.history') }}"><span>🍳</span>Cocinar</a>
+  {% if current_user.is_authenticated %}
+    <a href="{{ url_for('shopping.index') }}" class="{{ 'active' if ep.startswith('shopping.') }}">
+      <span>🛒{% if shopping_pending %}<i class="dot">{{ shopping_pending }}</i>{% endif %}</span>Compras
+    </a>
+    <a href="{{ url_for('meal_plan.index') }}" class="{{ 'active' if ep.startswith('meal_plan.') }}"><span>📅</span>Plan</a>
+    <a href="{{ url_for('profile.profile') }}" class="{{ 'active' if ep.startswith('profile.') or ep.startswith('inventory.') or ep in ('recipes.favorites', 'recipes.history') }}"><span>👤</span>Perfil</a>
+  {% else %}
+    <a href="{{ url_for('recipes.list_recipes') }}"><span>📖</span>Recetas</a>
+    <a href="{{ url_for('auth.login') }}" class="{{ 'active' if ep.startswith('auth.') }}"><span>👤</span>Ingresar</a>
+  {% endif %}
+</nav>

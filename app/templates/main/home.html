@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+{% block title %}Inicio{% endblock %}
+{% block content %}
+<section class="card hello">
+  <div>
+    <h1>Hola, {{ current_user.first_name }} 👋</h1>
+    <p>¿Qué cocinamos hoy?</p>
+  </div>
+  <div class="actions">
+    {{ ui.button("¿Qué cocino?", href=url_for('cook.form'), variant="primary", size="lg", icon="🍳") }}
+    {{ ui.button("Cocina con lo que tengo", href=url_for('cook.pantry'), variant="ghost", size="lg") }}
+  </div>
+</section>
+
+{% if use_first %}
+<section class="section">
+  <div class="card card--cream">
+    <div class="card__head"><h3>⏰ Aprovecha primero</h3>
+      <a href="{{ url_for('inventory.index') }}" class="small">Ver inventario</a></div>
+    <div class="use-first">
+      {% for item in use_first %}
+        <span class="tag {{ 'tag--red' if item.expiration_date < today else 'tag--warn' }}">{{ item.ingredient.emoji }} {{ item.ingredient.name }} · {{ item.expiration_date | date_es }}</span>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="section">
+  <div class="section__head">
+    <h2>Según lo que tienes</h2>
+    {% if suggestions %}<a href="{{ url_for('cook.form') }}">Buscar otras ideas →</a>{% endif %}
+  </div>
+  {% if suggestions %}
+    <p class="muted">Elegimos estas opciones según tu inventario y tus preferencias.</p>
+    <div class="grid grid--3">
+      {% for match in suggestions %}{{ ui.recipe_card(match.recipe, match=match, favorite_ids=favorite_ids) }}{% endfor %}
+    </div>
+  {% else %}
+    {{ ui.empty_state("🧺", "Tu refrigeradora está esperando una idea.",
+       "Agrega algunos ingredientes a tu inventario y veremos qué podemos preparar.",
+       "Agregar ingredientes", url_for('inventory.index')) }}
+  {% endif %}
+</section>
+
+<section class="section summary-grid">
+  <div class="card">
+    <div class="card__head"><h3>❤️ Tus favoritas</h3><a href="{{ url_for('recipes.favorites') }}" class="small">Ver todas</a></div>
+    {% if favorites %}
+      <ul class="mini-list">
+        {% for recipe in favorites %}
+          <li><a href="{{ url_for('recipes.detail', slug=recipe.slug) }}">{{ recipe.emoji }} {{ recipe.name }}</a>
+            <span class="muted">{{ recipe.total_minutes | minutes }}</span></li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted mb-0">Todavía no tienes recetas favoritas.</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="card__head"><h3>📅 Esta semana</h3><a href="{{ url_for('meal_plan.index') }}" class="small">Plan semanal</a></div>
+    {% if plan and plan.items %}
+      <ul class="mini-list">
+        {% for idx, day_name, meals in plan_grid %}
+          {% set lunch = meals['almuerzo'] or meals['cena'] %}
+          {% if lunch %}<li><span class="muted">{{ day_name }}</span><span>{{ lunch.recipe.name }}</span></li>{% endif %}
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">Todavía no tienes un menú semanal.</p>
+      {{ ui.button("Armar mi semana", href=url_for('meal_plan.index'), variant="secondary", size="sm") }}
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="card__head"><h3>🛒 Tu lista</h3><a href="{{ url_for('shopping.index') }}" class="small">Abrir</a></div>
+    {% if shopping_pending %}
+      <p class="mb-1"><span class="big-number">{{ shopping_pending }}</span> <span class="muted">productos pendientes</span></p>
+      <ul class="mini-list">
+        {% for item in pending_items %}<li>☐ {{ item.name }}</li>{% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted mb-0">Tu lista está vacía. Cuando una receta necesite algo que no tienes, podrás agregarlo aquí.</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

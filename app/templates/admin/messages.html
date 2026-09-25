@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% import "components/ui.html" as ui with context %}
+{% block title %}Mensajes · Admin{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Mensajes de contacto</h1></div>
+{% include "admin/_nav.html" %}
+{% if messages %}
+<div class="stack">
+  {% for m in messages %}
+  <article class="card">
+    <div class="card__head"><strong>{{ m.name }} · <a href="mailto:{{ m.email }}">{{ m.email }}</a></strong>
+      <span class="muted small">{{ m.created_at | date_es }}{% if not m.read %} · <span class="tag tag--warn">nuevo</span>{% endif %}</span></div>
+    <p class="mb-0" style="white-space:pre-line">{{ m.message }}</p>
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+  {{ ui.empty_state("✉️", "No hay mensajes todavía.", None) }}
+{% endif %}
+{% endblock %}
