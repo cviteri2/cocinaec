@@ -128,6 +128,7 @@ def _register_security_headers(app):
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
         "font-src 'self' https://fonts.gstatic.com; "
         "script-src 'self'; "
+        "frame-src https://consentec.pythonanywhere.com; "
         "form-action 'self'; "
         "frame-ancestors 'none'; "
         "base-uri 'self'"
