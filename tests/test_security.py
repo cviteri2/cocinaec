@@ -104,6 +104,12 @@ def test_security_headers(client):
     assert response.headers["X-Content-Type-Options"] == "nosniff"
 
 
+def test_contact_page_allows_consent_iframe(client):
+    response = client.get("/contact")
+    assert "consentec.pythonanywhere.com/forms/embed/" in response.get_data(as_text=True)
+    assert "frame-src https://consentec.pythonanywhere.com" in response.headers["Content-Security-Policy"]
+
+
 def test_templates_escape_user_input(client):
     html = client.get("/recipes?q=<script>alert(1)</script>").get_data(as_text=True)
     assert "<script>alert(1)</script>" not in html
