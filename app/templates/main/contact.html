@@ -9,8 +9,8 @@
 </div>
 <form method="post" class="card form" novalidate>
   {{ ui.csrf() }}
-  {{ ui.form_field("name", "Nombre", form.name, error=errors.name, required=True, autocomplete="name") }}
-  {{ ui.form_field("email", "Email", form.email, type="email", error=errors.email, required=True, autocomplete="email") }}
+  {{ ui.form_field("name", "Nombre", form.name, error=errors.name, required=True, autocomplete="name", attrs='data-consentec="name"'|safe) }}
+  {{ ui.form_field("email", "Email", form.email, type="email", error=errors.email, required=True, autocomplete="email", attrs='data-consentec="email"'|safe) }}
   <div class="field {{ 'field--error' if errors.message }}">
     <label for="f-message">Mensaje <span class="req">*</span></label>
     <textarea id="f-message" name="message" maxlength="3000" required>{{ form.message }}</textarea>
@@ -21,6 +21,7 @@
 </form>
 <section class="card mt-3">
   <h2>Preferencias de privacidad</h2>
-  <iframe src="https://consentec.pythonanywhere.com/forms/embed/xQOY0tF0W20BdgzW" title="Preferencias de privacidad" loading="lazy" style="width:100%;min-height:560px;border:0"></iframe>
+  <iframe src="https://consentec.pythonanywhere.com/forms/embed/xQOY0tF0W20BdgzW" title="Preferencias de privacidad" style="width:100%;height:560px;border:0"></iframe>
+  <script src="https://consentec.pythonanywhere.com/static/js/embed.js" async></script>
 </section>
 {% endblock %}
